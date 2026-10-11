@@ -1,0 +1,65 @@
+# Example spine for 《AI未来已来》 by 李开复 (Kai-Fu Lee).
+# Built from the public distilled-skill repo
+# https://github.com/Grruuu/ai-future-is-now-skill, not from the full text.
+# Claims are paraphrased from that repo; check them against the book before relying on them.
+
+source:
+  title: "AI未来已来：CEO、组织、个人的时代红利"
+  author: "李开复 (Kai-Fu Lee)"
+  kind: book
+  published: 2026
+  language: zh
+  author_context: >
+    The author founded and runs an AI company whose enterprise products match
+    systems the book recommends; the distillation flags this as a product-narrative risk.
+    The distillation also notes the book tends to explain every failed transformation
+    as "wrong order" rather than a limit of the technology, which is hard to falsify.
+  notes: "Built from a distilled skill repo, not the full text."
+
+order: idea
+
+units:
+  - id: ch09
+    title: "Two maps: is my job still safe? / Three directions"
+    location: "Chapter 9"
+    status: in-progress
+    claims:
+      - text: >
+          Work can be placed on two axes: whether it has a standard right answer,
+          and whether its value depends on a particular person being present and answerable.
+        contestable_because: "Neither axis is measurable; the same job can land differently in different orgs."
+      - text: >
+          Knowledge work turned out more automatable, and hands-on work less, than people expected a decade ago.
+        contestable_because: "Depends heavily on which tasks and how far ahead you look."
+      - text: >
+          Value gathers where someone must answer for the outcome when things go wrong.
+        contestable_because: "Assumes organizations pay a premium for taking accountability."
+    general_ideas:
+      - "Which kinds of work does AI take over first, and why does that differ from human intuitions about difficulty?"
+      - "Who is accountable when work is automated, and does accountability disappear, move, or become a formality?"
+      - "When a human stays in the loop only to sign off, are they making judgments or absorbing blame?"
+    checkable:
+      - claim: "Customer-support AI helps novices far more than experts."
+        consensus: unknown
+        checked: null
+        sources: []
+    weaknesses:
+      - "The map is a snapshot; the author admits an earlier version (creativity as a safe zone) was wrong."
+      - "'Move toward accountability' assumes the org rewards it, not just punishes errors."
+      - "If everyone moves toward the same scarce roles, the premium may vanish (not discussed)."
+
+  - id: ch06-07
+    title: "Enterprise decision core and the 'boss AI'"
+    location: "Chapters 6–7"
+    status: not-started
+    general_ideas:
+      - "How should you weigh advice from someone who sells the solution they recommend?"
+      - "What makes an organization's knowledge usable by AI: the documents, or the relationships between them?"
+
+  - id: transformation
+    title: "Why AI transformations fail"
+    location: "Various chapters"
+    status: not-started
+    general_ideas:
+      - "How do you tell a failed attempt from a hard limit of the technology?"
+      - "What evidence would show that an AI project changed the business, not just the workflow?"

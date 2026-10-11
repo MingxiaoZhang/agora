@@ -1,0 +1,39 @@
+# Rated hooks. Each case lists the hook and which quality-bar checks it passes or fails
+# (numbers refer to method/hooks.md).
+
+- id: hook-too-wide
+  verdict: fail
+  hook:
+    headline: "The safest part of your job probably isn't the part you think."
+    activity: "List 8 specific tasks from your week; give each a percent chance AI does it as well as you in 3 years."
+  fails: [5]
+  note: "Real first-trial failure: eight items spread the discussion thin. Fixed by asking for two."
+
+- id: hook-two-tasks
+  verdict: pass
+  hook:
+    headline: "The safest part of your job probably isn't the part you think."
+    activity: "Pick the two tasks you'd most hate to lose; give each a percent chance and say whether it needs you in particular, and why."
+
+- id: hook-framework-quiz
+  verdict: fail
+  hook:
+    headline: "Which quadrant is your job in?"
+    activity: "Place your role on the author's two axes."
+  fails: [3, 6]
+  note: "Only meaningful inside the book's framework, and tells the theme before the learner feels it."
+
+- id: hook-fake-stat
+  verdict: fail
+  hook:
+    headline: "90% of engineers will be replaced by 2028."
+    activity: "Decide whether you're in the 10%."
+  fails: [1]
+  note: "Invented number. Catchy is fine; untrue is not."
+
+- id: hook-cliffhanger
+  verdict: fail
+  hook:
+    headline: "There's one skill AI can't touch. We'll get to it next week."
+    activity: "Guess what it is."
+  fails: [2]
