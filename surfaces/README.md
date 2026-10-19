@@ -15,7 +15,7 @@ Run it after any change to `method/` or `formats/`, and commit the result. Never
 | [`claude-skill/`](claude-skill/) | v0 | Zip the folder and upload it in Claude (Settings → Capabilities → Skills), or copy it to `~/.claude/skills/agora/` for Claude Code |
 | [`chatgpt/`](chatgpt/) | v0 | Create a custom GPT: paste `instructions.md`, upload the files in `knowledge/` |
 | [`agents-md/`](agents-md/) | v0 | Copy `AGENTS.md` into your learner repo, for Codex, Cursor, and other agents that read it |
-| [`voice/`](voice/) | planned | — |
+| [`voice/`](voice/) | Phase 0 | ElevenLabs voice agent; start with [`voice/SMOKE-TEST.md`](voice/SMOKE-TEST.md) |
 | [`diagrams/`](diagrams/) | planned | — |
 | `mcp-server/` | only if needed | — |
 

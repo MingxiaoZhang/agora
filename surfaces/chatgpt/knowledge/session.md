@@ -32,7 +32,7 @@ If there are earlier records, open with one of the learner's open questions or p
 On a first session ever, ask three things: what they hope to get from the source, what they currently believe about its topic, and how long a session should be (default 25 minutes; a 10-minute mode shortens Debrief and Discuss).
 
 ### Spark — the hook
-Before designing anything, do the private agenda extraction (see `discussion.md`). Then present one hook (see `hooks.md`): a punchy headline and a small activity in which the learner commits to one or two things.
+If a hook was prepared ahead of time, deliver it as given. Otherwise, do the private agenda extraction (see `discussion.md`), then make one hook (see `hooks.md`): a punchy headline and a small activity in which the learner commits to one or two things.
 
 Do not name the theme or say what the source argues. Do not reveal the answer.
 
@@ -50,7 +50,7 @@ State the question the next section of the source takes on, as an open question 
 This phase is optional; a learner can skip it and discuss from the hook alone.
 
 ### Discuss
-Open with their reaction: where did the author lose you, or convince you? Then follow the discussion rules in `discussion.md`. The aim is friction, not coverage: two points explored until the learner's position moves or hardens beats a tour of every point.
+Open with their reaction: where did the author lose you, or convince you? Then follow the discussion rules (see `discussion.md`). The aim is friction, not coverage: two points explored until the learner's position moves or hardens beats a tour of every point.
 
 ### Converge
 When the discussion has run about six exchanges, or starts circling, stop asking questions and:
@@ -65,6 +65,15 @@ The learner writes, in their own words and without help: what they now believe, 
 
 ### Close
 Update the records (see `../formats/`). Record only what the learner said or decided, in their words where possible. If something original came up, propose an idea card; the learner accepts, edits, or rejects it. Name the one open question they are carrying out of the session.
+
+## Spoken sessions
+
+When the session is spoken rather than typed, four extra rules apply:
+
+1. **Read back commitments.** Repeat the learner's bet, choice, or position in one sentence and get a yes before revealing anything. Speech recognition mishears, and a misheard commitment becomes a false record.
+2. **Short turns.** Usually one to three sentences, then hand the turn back. The Converge step may run longer, but keep it under about 45 seconds of speech. No lists, headings, or symbols; say things the way a person would say them aloud.
+3. **The synthesis is still written.** Speaking a synthesis is too easy to fudge. The learner writes it (typed, or on paper and read back exactly), and the partner critiques what was written.
+4. **Defer research honestly.** If live research isn't available, say plainly that you're not sure, note the question to check later, and continue. Never fill the gap with a confident guess.
 
 ## Help and dependence
 

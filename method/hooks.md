@@ -58,3 +58,5 @@ If any check fails, redesign. A generic hook is worse than a plain "What do you 
 2. Draft three candidate hooks in different formats.
 3. Check each against the quality bar. Keep the best that passes.
 4. Record the hook used and the ones rejected, with the reason (see `../formats/session-note.md`).
+
+Hooks can be made **ahead of time** and stored on the spine unit (see `../formats/spine.md`). This is useful when the session itself can't afford the extra work, as in a live voice call. A prepared hook must pass the same quality bar. The partner then delivers it as given, and checks only that the learner context hasn't made it stale.

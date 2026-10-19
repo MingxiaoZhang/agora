@@ -12,6 +12,7 @@ A spine is the partner's private agenda, written down so it carries across sessi
 source:
   title: string
   author: string
+  spoken_name: string         # optional: how to say the source aloud, e.g. "Kai-Fu Lee's book"
   kind: book | talk | video | podcast | articles | course | topic
   published: YYYY or YYYY-MM-DD
   language: string            # e.g. zh, en
@@ -37,6 +38,12 @@ units:
         sources: [url]
     weaknesses:
       - string
+    hooks:                    # optional: hooks prepared ahead of time
+      - format: string        # from method/hooks.md
+        headline: string
+        activity: string      # ends with what the learner commits to
+        debrief_angle: string # what the debrief should surface (private)
+        used: YYYY-MM-DD      # set when a session uses it; omit if unused
 ```
 
 Every field except `id`, `title`, and `general_ideas` is optional. A spine can start as a list of unit titles and fill in as sessions happen.

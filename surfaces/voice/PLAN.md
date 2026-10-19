@@ -18,6 +18,8 @@ Sizes are rough, for one person working in spare time.
 
 ## Phase 0 — Voice prompt and smoke test
 
+**Status:** built; smoke test not yet run.
+
 **Why first:** before writing any CLI code, find out whether a spoken session with this method is any good.
 
 **Deliverables**
@@ -43,16 +45,17 @@ Sizes are rough, for one person working in spare time.
 
 **Deliverables**
 - Package skeleton: `surfaces/voice/agora_voice/` with `cli.py`, `config.py`, a `pyproject.toml`, and a README install section.
-- `context.py`: learner repo → dynamic variables. Implements unit selection, the size limits, and whole-item truncation.
+- `context.py`: learner repo → dynamic variables, matching `smoke/transformation.vars.json`. Implements unit selection, prepared-hook selection, the size limits, and whole-item truncation.
 - `render.py`: event log + transcript → session note and record drafts, following `formats/`.
 - `reconcile.py`: fuzzy check of `learner_quote` against user turns, the data-collection fallback, and `# REVIEW:` markers.
 - `EventLog`: append-and-flush JSONL writer and reader.
-- Fixtures: the example spine, the template learner repo, and a hand-made transcript plus event log covering exact quotes, paraphrased quotes, a missing tool call, and a post-call synthesis.
+- Fixtures: the example spine (which has prepared hooks), the template learner repo, and a hand-made transcript plus event log covering exact quotes, paraphrased quotes, a missing tool call, and a post-call synthesis.
 - Tests with `pytest`, plus a GitHub Actions workflow running them on push.
 - A CLI command that works offline: `agora-voice ingest --from-fixture <dir>` renders drafts from fixtures. It's useful for demos and debugging.
 
 **Done when**
 - All tests pass in CI.
+- `context.py` on the example spine reproduces the hand-written smoke-test variables, apart from `learner_context`.
 - Running `ingest --from-fixture` on the example produces a session note that matches `formats/session-note.md` and flags the paraphrased quote.
 - Rendered records diff cleanly against a learner repo: no reformatting of untouched entries, and history is appended, never overwritten.
 

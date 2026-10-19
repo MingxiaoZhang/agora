@@ -57,9 +57,17 @@ surfaces/voice/
 │   ├── agent.template.json   # agent config, minus prompt and tool ids
 │   ├── tools.json            # client tool definitions
 │   ├── data-collection.json  # post-call extraction fields
-│   └── voice-header.md       # hand-written: voice-specific framing for the prompt
+│   ├── voice-header.md       # hand-written: personality, tone, goal, guardrails
+│   ├── voice-tools.md        # hand-written: when to call each client tool (CLI)
+│   ├── voice-smoke.md        # hand-written: no-tools variant (Phase 0 smoke test)
+│   └── session-context.md    # hand-written: the {{variables}} block
 ├── generated/
-│   └── agent-prompt.md       # built by scripts/build-surfaces.sh: header + method/
+│   ├── agent-prompt.md       # built: header + tools + method + context
+│   └── agent-prompt.smoke.md # built: header + smoke + method + context
+├── scripts/
+│   └── fill-prompt.py        # fills variables for pasting into the dashboard
+├── smoke/
+│   └── transformation.vars.json  # Phase 0 session variables
 └── agora_voice/              # Python package
     ├── cli.py                # argparse entry: setup | talk | ingest
     ├── config.py             # env + .agora/voice.toml
@@ -121,33 +129,30 @@ The agent prompt is the same method text every other surface uses. Session speci
 
 ## 6. Prompt
 
-`build-surfaces.sh` gains one target:
+`build-surfaces.sh` builds two variants:
 
 ```
-generated/agent-prompt.md = voice-header.md + method/session.md + method/hooks.md + method/discussion.md
+generated/agent-prompt.md       = voice-header + voice-tools + method + session-context
+generated/agent-prompt.smoke.md = voice-header + voice-smoke + method + session-context
+method = method/session.md + method/discussion.md, minus "## Agenda extraction",
+         with cross-file "(see `x.md`)" pointers removed, headings nested under "# The method"
 ```
+
+**Prompt budget.** ElevenLabs recommends staying under about 2,000 tokens, since longer prompts add latency. The method alone is about 3,200 tokens, so two things are omitted from the voice prompt, without changing any method text:
+- **`method/hooks.md`.** Hooks are prepared ahead of time, pass the quality bar outside the call, and arrive as variables (section 7). This also improves hook quality, since checking three candidates live is too slow for voice.
+- **Agenda extraction.** The agenda arrives already extracted, as `unit_brief`.
+
+Measured in Phase 0: about 3,300 tokens for the smoke prompt before variables, and about 3,800 filled. Whether that latency is acceptable is a Phase 0 question. If it isn't, the next cuts are the session intro paragraph and the moves table.
 
 Formats are **not** in the prompt; the agent never writes records. It calls tools, and the CLI writes records.
 
-`voice-header.md` (hand-written, short) covers only what's specific to this surface:
-- You are speaking, not writing. No lists, headings, or markdown. Usually one to three sentences per turn.
-- Today's session context is below, in dynamic variables.
-- Which client tools exist and exactly when to call each (section 8).
-- You cannot search the web in this surface. When a fact matters and you aren't sure, say so and call `queue_research`; don't guess.
-- End the session with `end_call` after the close.
+**Hand-written pieces** (only what's specific to this surface), following ElevenLabs' prompting guide (Personality / Environment / Tone / Goal / Guardrails / Tools sections, critical rules repeated with "This step is important"):
+- `voice-header.md`: spoken style, no markdown, numbers in words; the hook is prepared, so deliver it as given; read back before reveal; no web access, so defer research honestly; the read step means either skip or end the call and come back; guardrails (never read the brief aloud, never invent facts, converge after about six exchanges).
+- `voice-tools.md`: when to call each client tool (section 8), and what to do if one fails.
+- `voice-smoke.md`: no tools; the learner jots down research questions and writes the synthesis on paper, then reads it out.
+- `session-context.md`: the variable block, ending with the private unit brief.
 
-Session context block at the end of the header:
-
-```
-Source: {{source_title}} by {{source_author}} ({{source_kind}}, {{source_published}})
-Unit: {{unit_title}} ({{unit_location}})
-Unit brief (private agenda — do not read aloud): {{unit_brief}}
-Learner context: {{learner_context}}
-Recent positions: {{recent_positions}}
-Open question to resume with: {{open_question}}
-Recent hook formats (avoid): {{recent_hook_formats}}
-Session length: {{session_minutes}} minutes
-```
+The first message is `{{opening_line}}`, set on the agent, not in the prompt.
 
 ## 7. Session context (`context.py`)
 
@@ -157,15 +162,19 @@ Dynamic variables (all strings; values must be strings, numbers, or booleans):
 
 | Variable | Built from | Limit |
 |---|---|---|
-| `source_title`, `source_author`, `source_kind`, `source_published` | `spine.yaml: source` | — |
-| `unit_title`, `unit_location` | selected unit | — |
-| `unit_brief` | unit `claims`, `general_ideas`, `checkable`, `weaknesses`, + `source.author_context`, rendered as compact plain text | ~1,500 words |
+| `source_spoken_name` | `spine.yaml: source.spoken_name` (new optional field), else author + kind, e.g. "Kai-Fu Lee's book". TTS can't pronounce every title, especially in other scripts | — |
+| `source_author`, `source_published` | `spine.yaml: source` | — |
+| `source_author_context` | `spine.yaml: source.author_context` | ~100 words |
+| `unit_title` | selected unit | — |
+| `unit_brief` | unit `claims`, `general_ideas`, `checkable`, `weaknesses`, rendered as compact prose, ending with a note that it's paraphrased if the spine says so | ~500 words |
+| `hook_format`, `hook_headline`, `hook_activity`, `hook_debrief_angle` | first prepared hook on the unit with no `used` date | — |
 | `learner_context` | `learner/context.md` | ~200 words |
 | `recent_positions` | up to 5 positions whose `origin.source` matches, or that are most recent overall; `topic: current` | ~300 words |
 | `open_question` | newest line in `learner/open-questions.md`, or "" | 1 line |
-| `recent_hook_formats` | `hook_format` from the last 3 entries in `learner/signals.yaml` | — |
 | `session_minutes` | flag or 25 | — |
 | `opening_line` | resume question if `open_question` is set, else a one-line greeting naming the unit | 1 sentence |
+
+**Hook selection.** Pick the first unused prepared hook whose format isn't among the last three in `learner/signals.yaml`, falling back to any unused hook. If the unit has none, stop with a message: prepare hooks first, in another surface (e.g. the Claude skill: "prepare two hooks for unit X") or by hand. `ingest` sets `used` on the hook afterwards.
 
 Truncate by dropping whole items, never mid-sentence. Log the final variable sizes in verbose mode. Never include `secret__` variables; none are needed.
 
@@ -288,7 +297,7 @@ Per the surface rule, these go into `method/session.md` as a "Spoken sessions" s
 ## 15. Build order
 
 1. `context.py` + `render.py` + `reconcile.py` with fixtures (no ElevenLabs needed).
-2. `voice-header.md`, `build-surfaces.sh` target, method "Spoken sessions" subsection.
+2. Done in Phase 0: voice prompt pieces, `build-surfaces.sh` target, method "Spoken sessions" subsection, prepared hooks.
 3. `provision.py`, then a text-only dry run.
 4. `talk.py` with audio, then the first real session.
 5. Tune from the trial: prompt, thresholds, tool timing.

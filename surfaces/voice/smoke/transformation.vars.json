@@ -1,0 +1,17 @@
+{
+  "source_spoken_name": "Kai-Fu Lee's book on AI in companies",
+  "source_author": "Kai-Fu Lee",
+  "source_published": "2026",
+  "source_author_context": "The author founded and runs an AI company that sells enterprise systems like the ones the book recommends. A public distillation of the book notes that it explains almost every failed AI transformation as a problem of doing things in the wrong order, which is hard to falsify.",
+  "unit_title": "Why AI transformations fail",
+  "session_minutes": 25,
+  "learner_context": "EDIT ME: one or two sentences on your role and what you want from this book. Hooks get personal from this.",
+  "recent_positions": "None recorded for this book yet.",
+  "open_question": "None. This is the first session on this unit.",
+  "hook_format": "forced dilemma",
+  "hook_headline": "A team made contract review forty percent faster. Success or failure? You have ninety seconds.",
+  "hook_activity": "Decide: success or failure. Then give the one question you would ask the team to settle it.",
+  "hook_debrief_angle": "What did the learner assume success meant? Push toward what would have to change in the business, not the workflow, for it to count, and whether that test is fair.",
+  "unit_brief": "Claim one: an AI project only counts if you can say which line of the financial statements it moves, by how much, and when; faster work that changes none of them is cosmetic. Contestable because some value, such as quality, risk, morale, or learning, is real but slow or hard to show on financial statements. Claim two: failed transformations are usually failures of order; the organization flattened or automated before it captured its knowledge and redesigned its decisions. Contestable because the book explains nearly every failure this way, including cases a company itself attributed to the technology's limits, which makes the claim hard to falsify. Claim three: projects are often killed quietly by people who never formally object, a pocket veto, rather than by open opposition. Contestable because it is hard to observe and easy to blame after the fact. General ideas to steer toward: how do you tell a failed attempt from a hard limit of the technology? What evidence would show a project changed the business, not just the workflow? When an explanation fits every failure, is that a strength or a warning sign? Weaknesses: the attribution of failures is close to unfalsifiable; the author's company sells systems the book recommends elsewhere. These claims are paraphrased from a public distillation of the book, not the full text; if the learner asks what the author actually wrote, send them to the book.",
+  "opening_line": "Hi, I'm Agora. Today we're starting a new part of Kai-Fu Lee's book, and we'll begin with a quick exercise before any reading. Ready?"
+}

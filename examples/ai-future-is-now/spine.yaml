@@ -6,6 +6,7 @@
 source:
   title: "AI未来已来：CEO、组织、个人的时代红利"
   author: "李开复 (Kai-Fu Lee)"
+  spoken_name: "Kai-Fu Lee's book on AI in companies"
   kind: book
   published: 2026
   language: zh
@@ -47,6 +48,17 @@ units:
       - "The map is a snapshot; the author admits an earlier version (creativity as a safe zone) was wrong."
       - "'Move toward accountability' assumes the org rewards it, not just punishes errors."
       - "If everyone moves toward the same scarce roles, the premium may vanish (not discussed)."
+    hooks:
+      - format: predict-and-commit
+        headline: "The safest part of your job probably isn't the part you think."
+        activity: >
+          Pick the two tasks from your week you'd most hate to lose. For each, give the
+          percent chance AI does it as well as you within three years, and say whether it
+          needs you in particular, and why.
+        debrief_angle: >
+          Separate how hard a task is for AI from what happens when it goes wrong;
+          they are different variables.
+        used: 2026-10-08
 
   - id: ch06-07
     title: "Enterprise decision core and the 'boss AI'"
@@ -60,6 +72,36 @@ units:
     title: "Why AI transformations fail"
     location: "Various chapters"
     status: not-started
+    claims:
+      - text: >
+          An AI project only counts if you can say which line of the financial statements
+          it moves, by how much, and when. Faster work that changes none of them is cosmetic.
+        contestable_because: >
+          Some value (quality, risk, morale, learning) is real but slow or hard to show
+          on financial statements.
+      - text: >
+          Failed transformations are usually failures of order: the organization flattened
+          or automated before it captured its knowledge and redesigned its decisions.
+        contestable_because: >
+          The book explains nearly every failure this way, including cases a company itself
+          attributed to the technology's limits, which makes the claim hard to falsify.
+      - text: >
+          Projects are often killed quietly by people who never formally object
+          (a "pocket veto"), not by open opposition.
+        contestable_because: "Hard to observe, so easy to blame after the fact."
     general_ideas:
       - "How do you tell a failed attempt from a hard limit of the technology?"
       - "What evidence would show that an AI project changed the business, not just the workflow?"
+      - "When an explanation fits every failure, is that a strength or a warning sign?"
+    weaknesses:
+      - "Attribution of failures is close to unfalsifiable (flagged by the distillation itself)."
+      - "The author's company sells the systems recommended elsewhere in the book."
+    hooks:
+      - format: forced dilemma
+        headline: "A team made contract review 40% faster. Success or failure? You have ninety seconds."
+        activity: >
+          Decide: success or failure. Then give the one question you would ask the team
+          to settle it.
+        debrief_angle: >
+          What did the learner assume "success" meant? Push toward what would have to change
+          in the business, not the workflow, for it to count, and whether that test is fair.
