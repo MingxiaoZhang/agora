@@ -80,7 +80,7 @@ surfaces/voice/
     └── render.py             # session note + record diffs (formats/)
 ```
 
-Dependencies: `elevenlabs[pyaudio]`, `pyyaml`. Python 3.11+. On Linux, `portaudio19-dev`; on macOS, `brew install portaudio`.
+Dependencies: `elevenlabs[pyaudio]`, `pyyaml`, and `tomli` on Python 3.10. Python 3.10+ (3.10 is what the development machine has; `tomli` stands in for `tomllib`). On Linux, `portaudio19-dev`; on macOS, `brew install portaudio`.
 
 ## 4. Configuration
 
@@ -203,7 +203,9 @@ Every tool appends one JSON line to the session's event log and returns a small 
 {"t": "2026-10-18T06:42:10Z", "tool": "record_commitment", "params": {...}, "conversation_id": null}
 ```
 
-`conversation_id` is filled in when known. Writes are append-and-flush, so a crash mid-call loses nothing already logged. The `.agora/voice-sessions/` folder should be gitignored in the learner repo; it is scratch, not records.
+`conversation_id` is filled in when known. Writes are append-and-flush, so a crash mid-call loses nothing already logged.
+
+Two entries aren't agent tool calls. The first line is `session_start`, with the `source`, `unit`, `hook_headline`, `session_minutes` and `date` the session was built from, so `ingest` knows where records go and which hook to mark used. `conversation` is appended once the conversation id is known. A post-call synthesis is logged as a `request_synthesis` entry with `source: "post-call"`. The `.agora/voice-sessions/` folder should be gitignored in the learner repo; it is scratch, not records.
 
 ## 9. The call (`talk.py`)
 
@@ -229,7 +231,7 @@ The terminal shows a live transcript (both sides), so the learner can see what t
 **Fetch:** `GET /v1/convai/conversations/{id}`. Poll every 5 s while `status` is `processing`, giving up after 2 minutes. Use `transcript`, `analysis` (data collection results), and `metadata` (duration, cost).
 
 **Reconcile:**
-1. **Verbatim check.** For each `learner_quote`, fuzzy-match it (normalized, token-set ratio) against user turns in the transcript. At or above the threshold (start at 0.8; tune), mark `verified`. Below it, mark `unverified` and attach the closest user turn, so the learner can fix it.
+1. **Verbatim check.** For each `learner_quote`, fuzzy-match it (normalized, token-set ratio; each CJK character is a token) against user turns in the transcript, and against adjacent pairs of turns, since a quote can span a turn break. At or above the threshold (start at 0.8; tune), mark `verified`. Below it, mark `unverified` and attach the closest user turn, so the learner can fix it.
 2. **Fallback fill.** For each record type with no tool event, use the matching data-collection field if it's non-empty. Mark it `source: post-call-extraction` and always `unverified`.
 3. **Synthesis.** Always the typed text from the event log. Never extracted.
 
@@ -242,7 +244,9 @@ The terminal shows a live transcript (both sides), so the learner can see what t
 - `learner/signals.yaml`: one entry. `hints_used` and `answer_requested_before_attempt` come from data collection; `synthesis_written` and `converged` come from events.
 - Optional `<date>.transcript.md` if `save_transcripts = true`.
 
-Every rendered item that is `unverified` gets an inline `# REVIEW:` comment. Ingest never commits. It prints a summary: counts, unverified items, research queued, and call cost. The learner reviews with `git diff` and commits.
+Fields that belong to the learner (a position's `current` and `view`, a bet's `prediction`, an idea's statement) hold `learner_quote`, per the formats' "only the learner's words" rule. The agent's summary is kept next to it as a comment. YAML is edited as text, not re-dumped, so untouched entries stay byte for byte.
+
+Every rendered item that is `unverified` gets an inline `# REVIEW:` comment (`<!-- REVIEW: -->` in markdown, where `#` would start a heading). Ingest never commits. It prints a summary: counts, unverified items, research queued, and call cost. The learner reviews with `git diff` and commits.
 
 **Data-collection fields** (`data-collection.json`, fallback and signals only):
 
