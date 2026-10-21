@@ -1,0 +1,38 @@
+{
+  "name": "Agora",
+  "conversation_config": {
+    "agent": {
+      "first_message": "{{opening_line}}",
+      "prompt": {
+        "temperature": 0.6,
+        "built_in_tools": {
+          "end_call": null
+        }
+      }
+    },
+    "conversation": {
+      "max_duration_seconds": 2400
+    },
+    "turn": {
+      "soft_timeout_config": {
+        "timeout_seconds": 3,
+        "message": "Hmm, let me think about that.",
+        "additional_soft_timeout_messages": [
+          "Give me a second.",
+          "Okay..."
+        ],
+        "use_llm_generated_message": false,
+        "randomize_fillers": true
+      }
+    }
+  },
+  "platform_settings": {
+    "overrides": {
+      "conversation_config_override": {
+        "conversation": {
+          "text_only": true
+        }
+      }
+    }
+  }
+}

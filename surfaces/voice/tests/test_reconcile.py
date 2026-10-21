@@ -63,3 +63,11 @@ def test_synthesis_is_never_extracted(tmp_path):
     log.append("session_start", source="s", unit="u")
     conv = {"transcript": [], "analysis": {"data_collection_results": {"synthesis": {"value": "made up"}}}}
     assert reconcile(log, conv).synthesis is None
+
+
+def test_duplicate_events_count_once(tmp_path):
+    log = EventLog(tmp_path / "e.jsonl")
+    log.append("session_start", source="s", unit="u")
+    for _ in range(2):
+        log.append("record_hook", format="predict-and-commit", headline="h")
+    assert len(reconcile(log, {"transcript": []}).of("record_hook")) == 1

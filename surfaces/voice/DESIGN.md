@@ -36,11 +36,11 @@ All from ElevenAgents. Field names below are from the API reference as of 2026-1
 | Need | ElevenLabs feature |
 |---|---|
 | Voice loop | Agent: STT + LLM + TTS + turn-taking |
-| Model | Natively hosted Claude (Sonnet- or Haiku-class for latency; low `reasoning_effort`) |
+| Model | Natively hosted Claude (`claude-sonnet-5-5`, low `reasoning_effort`), with `claude-haiku-5-5` as the only backup (see §14, question 1) |
 | Method | Agent system prompt: `conversation_config.agent.prompt.prompt` |
 | Per-session context | Dynamic variables: `{{name}}` in prompt / first message, passed via `ConversationInitiationData(dynamic_variables=...)` |
 | Structured capture during the call | Client tools (`type: client`), handled in the local Python process |
-| Ending the call | System tool `end_call` |
+| Ending the call | The learner (`/quit` in text, Ctrl+C in voice). The agent has no `end_call` tool; see §8 |
 | Post-call extraction (fallback) | `platform_settings.data_collection` fields (map of id → `{type, description}`) |
 | Fetching results | `GET /v1/convai/conversations/{conversation_id}` |
 | Local audio | Python SDK `Conversation` + `DefaultAudioInterface` (`elevenlabs[pyaudio]`) |
@@ -93,6 +93,8 @@ agent_id = "agent_..."          # written by setup
 voice_id = "..."                # chosen by the learner
 llm = "<claude model id from the ElevenLabs model list>"
 reasoning_effort = "low"
+backup_llm = "claude-haiku-5-5"     # "" disables; the platform default backups aren't Claude
+cascade_timeout_seconds = 8
 language = "en"                 # discussion language
 save_transcripts = false        # if true, ingest keeps a transcript next to the session note
 max_duration_seconds = 2400    # 40 min; the platform default of 600 cuts sessions short
@@ -109,6 +111,8 @@ record_commitment = "tool_..."
 3. Merge `agent.template.json` with prompt, `llm`, `reasoning_effort`, `voice_id`, `language`, `tool_ids`, `max_duration_seconds`, and `data-collection.json`.
 4. If `agent_id` is set, update the agent; otherwise create it and write `agent_id`.
 5. Print the agent id and a reminder to set the conversation retention period in the dashboard.
+
+Idempotence: each tool and the agent are fetched and compared with what `setup` would send, ignoring extra fields the server adds, and only patched when something differs. Verified against the live API in Phase 2: a second run reports "Already up to date". The template allows the `text_only` override (needed by `talk --text`) and sets `built_in_tools.end_call` to null.
 
 `agent.template.json` essentials:
 
@@ -195,6 +199,10 @@ Every tool appends one JSON line to the session's event log and returns a small 
 | `request_synthesis` | `prompt` | true, `response_timeout_secs` large | at the synthesize step |
 
 **`request_synthesis`** keeps the written-synthesis rule without a UI. The handler prints the prompt in the terminal and blocks on `input()` (multi-line, ended by an empty line). It returns `{"synthesis": "<typed text>"}` to the agent, which then critiques it aloud, per the method. The typed text also goes into the event log verbatim.
+Its result also carries a `next` instruction: critique the text now, name the open question, and don't end before both. In Phase 2 dry runs the agent otherwise skipped the critique whenever the learner was short on time. The tool result is the strongest place to say what comes next.
+
+**No `end_call`.** In three dry runs the agent ended the session itself: once as soon as the learner said they were short on time, and twice right after the synthesis arrived, logging "synthesis critiqued" when it hadn't been. Prompt rules didn't stop it, so the agent can't hang up. It says goodbye and the learner ends the session.
+
 *Risk:* the platform may time out a tool response or end an idle call while the learner types. Mitigation: set the largest allowed `response_timeout_secs`. If the call drops anyway, `talk` notices the session ended without a `synthesis` event and asks for it in the terminal before running `ingest`. In that case the critique is skipped and noted.
 
 **Event log:** `<learner-repo>/.agora/voice-sessions/<local-session-id>.jsonl`, one object per line:
@@ -292,10 +300,20 @@ Per the surface rule, these go into `method/session.md` as a "Spoken sessions" s
 
 ## 14. Open questions to settle while building
 
-1. Exact Claude model ids in the ElevenLabs model list, and which gives acceptable turn latency. *Phase 0:* Claude Sonnet 5.5 (`claude-sonnet-5-5`) at low reasoning effort worked in the smoke test, with no latency complaints. Phase 2 still compares two models.
-2. Maximum `response_timeout_secs` for client tools, and whether silence while typing ends the call (affects `request_synthesis`).
-3. Whether tools are created via a separate tools endpoint and referenced by `tool_ids` (the agent schema marks inline `tools` as deprecated).
-4. Data-collection result shape in the conversation response (value plus rationale).
+1. Exact Claude model ids in the ElevenLabs model list, and which gives acceptable turn latency. *Phase 0:* Claude Sonnet 5.5 (`claude-sonnet-5-5`) at low reasoning effort worked in the smoke test, with no latency complaints. *Phase 2 (answered):* the ids are `claude-sonnet-5-5`, `claude-haiku-5-5` and `claude-opus-5-5`, among others. A scripted ch. 9 text dry run on each, at low effort:
+
+   | | Sonnet 5.5 | Haiku 5.5 |
+   |---|---|---|
+   | Time to first token, median / max | 1.68 s / 3.87 s | 1.18 s / 1.94 s |
+   | Read-back before reveal | yes | yes |
+   | Synthesis critique | specific; caught a contradiction with the bet | specific; caught the same contradiction |
+   | Debrief | all three questions | skipped the third |
+   | `record_position` calls | 3 | 0 |
+
+   Both follow the method in conversation. Haiku is faster but recorded no positions, and positions are the records that carry across sources. **Choice: Sonnet 5.5, with Haiku 5.5 as the only backup.** The platform's default backups are not Claude. In early dry runs, when Sonnet took more than the default 4 s to start, Gemini 2.5 Flash and GPT-4o wrote the converge and synthesis turns, and wrote them badly. `setup` therefore sets `backup_llm_config` to override with `backup_llm` from `voice.toml`, and `cascade_timeout_seconds` to 8.
+2. Maximum `response_timeout_secs` for client tools, and whether silence while typing ends the call (affects `request_synthesis`). *Partly answered:* 1–120 s, or `-1` to wait indefinitely (with `expects_response`), which `request_synthesis` uses. `turn.silence_end_call_timeout` defaults to `-1` (never). Whether a long silence in a voice call holds up is for Phase 3.
+3. Whether tools are created via a separate tools endpoint and referenced by `tool_ids` (the agent schema marks inline `tools` as deprecated). *Answered:* yes. `POST /v1/convai/tools` with `{"tool_config": ...}` returns `{"id"}`; `GET`/`PATCH /v1/convai/tools/{id}` read and update; the agent lists them in `conversation_config.agent.prompt.tool_ids`.
+4. Data-collection result shape in the conversation response (value plus rationale). *Answered:* `analysis.data_collection_results` maps each field id to `{data_collection_id, name, value, json_schema, rationale}`, with `value` typed per the field (string, integer, boolean). `reconcile.py` reads `value`. A live dry-run conversation ingested cleanly.
 5. STT quality for mixed English and Chinese terms.
 
 ## 15. Build order

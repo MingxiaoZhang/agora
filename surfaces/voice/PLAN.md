@@ -75,6 +75,8 @@ Sizes are rough, for one person working in spare time.
 
 **Decision:** pick the model. Run the same dry run on two candidate Claude models and choose by turn latency and how well each follows the method.
 
+**Status:** done. `setup` is idempotent against the live API, and the ch. 9 text dry run calls the tools in order. Chosen model: Claude Sonnet 5.5 with Haiku 5.5 as the only backup (comparison in `DESIGN.md` §14). The dry runs also led to removing `end_call` (§8).
+
 ---
 
 ## Phase 3 — Voice end to end

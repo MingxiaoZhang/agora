@@ -1,0 +1,11 @@
+{
+  "hook_format": {"type": "string", "description": "The hook format the agent used, from the method's list (e.g. predict-and-commit, forced dilemma). Empty if there was no hook."},
+  "hook_headline": {"type": "string", "description": "The hook's headline, as the agent said it."},
+  "commitment": {"type": "string", "description": "What the learner committed to after the hook, in the learner's own words. Empty if they didn't commit."},
+  "core_idea": {"type": "string", "description": "The core idea the agent stated at the converge step, in one or two sentences. Empty if it never converged."},
+  "conclusion": {"type": "string", "description": "The provisional conclusion the agent gave at the converge step."},
+  "open_questions": {"type": "string", "description": "The open questions named at the converge step, separated by ' | '."},
+  "hints_used": {"type": "integer", "description": "How many hints the agent gave when the learner was stuck (nudges, partial answers, or direct explanations)."},
+  "answer_requested_before_attempt": {"type": "integer", "description": "How many times the learner asked for the answer before trying it themselves."},
+  "converged": {"type": "boolean", "description": "True if the agent stated a core idea and a provisional conclusion."}
+}

@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import unicodedata
 from dataclasses import dataclass, field
@@ -145,7 +146,12 @@ def reconcile(log: EventLog, conversation: dict, threshold: float = THRESHOLD) -
         conversation_id=conversation.get("conversation_id") or log.conversation_id,
     )
 
+    seen = set()
     for event in log:
+        key = (event.tool, json.dumps(event.params, sort_keys=True, ensure_ascii=False))
+        if key in seen:  # the agent sometimes records the same thing twice
+            continue
+        seen.add(key)
         if event.tool == "request_synthesis":
             text = (event.params.get("synthesis") or "").strip()
             if text:

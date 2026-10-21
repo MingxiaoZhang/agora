@@ -20,7 +20,7 @@ import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 
 SESSIONS_DIR = Path(".agora") / "voice-sessions"
 
@@ -95,3 +95,52 @@ class EventLog:
     def conversation_id(self) -> str | None:
         ids = [e.params["conversation_id"] for e in self.events("conversation")]
         return ids[-1] if ids else None
+
+
+# --- client tool handlers ------------------------------------------------------
+
+RECORD_TOOLS = ("record_hook", "record_commitment", "record_position", "propose_idea",
+                "queue_research", "record_converge")
+
+
+# Returned with the synthesis. In dry runs the agent ended the call as soon as the
+# synthesis arrived when the learner was short on time; the result is the strongest
+# place to say what comes next.
+SYNTHESIS_NEXT = (
+    "Critique this text aloud now, in two or three sentences: what is vague, unsupported, or "
+    "contradicts what they said earlier. Do not rewrite it. Then name the open question they are "
+    "carrying out. Do not end the call before both."
+)
+
+
+class Handlers:
+    """Client tool handlers bound to one session's event log.
+
+    `read_synthesis` is called with the agent's prompt and must return what the
+    learner typed; `talk` supplies one that reads from the terminal.
+    """
+
+    def __init__(self, log: EventLog, read_synthesis: Callable[[str], str]):
+        self.log = log
+        self.read_synthesis = read_synthesis
+
+    def handlers(self) -> dict[str, Callable[[dict], Any]]:
+        out: dict[str, Callable[[dict], Any]] = {name: self._recorder(name) for name in RECORD_TOOLS}
+        out["request_synthesis"] = self.request_synthesis
+        return out
+
+    def _recorder(self, name: str) -> Callable[[dict], Any]:
+        def handle(params: dict) -> str:
+            params = {k: v for k, v in params.items() if k != "tool_call_id"}
+            self.log.append(name, **params)
+            return json.dumps({"ok": True})
+        return handle
+
+    def request_synthesis(self, params: dict) -> str:
+        prompt = params.get("prompt", "")
+        text = self.read_synthesis(prompt).strip()
+        self.log.append("request_synthesis", prompt=prompt, synthesis=text, source="in-call")
+        return json.dumps({"synthesis": text, "next": SYNTHESIS_NEXT})
+
+    def has_synthesis(self) -> bool:
+        return any(e.params.get("synthesis") for e in self.log.events("request_synthesis"))

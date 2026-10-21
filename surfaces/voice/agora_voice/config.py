@@ -5,6 +5,7 @@ The API key is never stored here; it comes from ELEVENLABS_API_KEY.
 
 from __future__ import annotations
 
+import json
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -25,6 +26,11 @@ class Config:
     voice_id: str | None = None
     llm: str = "claude-sonnet-5-5"
     reasoning_effort: str = "low"
+    # If the main model hasn't started replying after `cascade_timeout_seconds`, ElevenLabs
+    # hands the turn to the backup. Its own default backups aren't Claude, and in dry runs
+    # they wrote the converge and synthesis turns, badly. "" disables the backup.
+    backup_llm: str = "claude-haiku-5-5"
+    cascade_timeout_seconds: int = 8
     language: str = "en"
     save_transcripts: bool = False
     max_duration_seconds: int = 2400
@@ -49,3 +55,25 @@ def api_key() -> str:
     if not key:
         raise RuntimeError(f"{API_KEY_ENV} is not set.")
     return key
+
+
+def _toml_value(value) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, int):
+        return str(value)
+    return json.dumps(str(value), ensure_ascii=False)  # JSON string escapes are valid TOML
+
+
+def save(cfg: Config) -> None:
+    """Write the config back. `setup` owns `agent_id` and `[tool_ids]`; the rest is kept as loaded."""
+    lines = ["# Agora voice settings. No secrets: the API key comes from ELEVENLABS_API_KEY.", ""]
+    for name in Config.__dataclass_fields__:
+        value = getattr(cfg, name)
+        if name in ("learner_repo", "tool_ids") or value is None:
+            continue
+        lines.append(f"{name} = {_toml_value(value)}")
+    if cfg.tool_ids:
+        lines += ["", "[tool_ids]"] + [f"{k} = {_toml_value(v)}" for k, v in cfg.tool_ids.items()]
+    cfg.path.parent.mkdir(parents=True, exist_ok=True)
+    cfg.path.write_text("\n".join(lines) + "\n", encoding="utf-8")
