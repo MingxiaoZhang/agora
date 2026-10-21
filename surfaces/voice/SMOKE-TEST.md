@@ -12,7 +12,7 @@ This writes `surfaces/voice/generated/agent-prompt.md` (voice header + `method/`
 
 ## 2. Create the agent
 
-In the ElevenLabs dashboard, under Conversational AI → Agents, create a blank agent, then:
+Agents live in the ElevenAgents product, not ElevenCreative. Switch products from the sidebar, or go to https://elevenlabs.io/app/agents. Create a blank agent, then:
 
 1. **System prompt:** paste the whole of `agent-prompt.md`.
 2. **First message:** leave it empty, so the agent waits for you and its opening comes from the prompt. To start, say "Let's begin."
