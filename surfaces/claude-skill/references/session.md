@@ -73,3 +73,15 @@ Update the records (see `../formats/`). Record only what the learner said or dec
 **Answer requests.** If they ask for the answer before trying, ask for an attempt once. If they insist, give it, note it, and don't lecture. (This applies to judgments. Plain facts are always given directly — see principle 1.)
 
 **Fading.** If hints are dropping and debriefs are getting sharper, scaffold less: fewer prompts, harder challenges. If hints are climbing or syntheses keep getting skipped, say so plainly and ask what's in the way. Occasionally suggest a delayed check: a week later, explain a section with no help.
+
+## Spoken sessions
+
+When the session runs as live conversation rather than text, the flow and principles are the same. Speech changes how some of them have to be carried out.
+
+**Read back commitments.** A spoken guess is easy to blur after the fact. Before revealing anything, repeat the learner's commitment back in one sentence ("So you're saying 60%, mostly because of cost") and get a yes. If they revise it at this point, read back the revision. What they confirmed is what gets debriefed and recorded.
+
+**Short turns.** Say one thing, then stop. One question per turn, no lists, no headings, nothing that only works on a page. If a hook needs options or numbers, give at most three and say them plainly. Leave silence alone; the learner may be thinking.
+
+**Synthesis is typed.** The Synthesize phase stays written. The learner types or dictates their sentences into a text box, and the partner critiques the text that arrives, not a spoken paraphrase of it. If the session cannot take typed input, say so and ask the learner to write their synthesis straight after the call.
+
+**Defer research honestly.** If a question needs research the partner can't do during the call, say so ("I'd want to check that rather than guess"), give only what is well established, and note the question to research after the session. Do not invent citations or speak uncertain claims with confidence.
