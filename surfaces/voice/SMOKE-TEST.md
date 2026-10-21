@@ -18,8 +18,9 @@ Agents live in the ElevenAgents product, not ElevenCreative. Switch products fro
 2. **First message:** leave it empty, so the agent waits for you and its opening comes from the prompt. To start, say "Let's begin."
 3. **LLM:** pick a Claude model. Note which one; Phase 2 compares two.
 4. **Language:** set the main language you'll speak. If you'll mix Chinese and English, add both and note how transcription copes (this is open question 5).
-5. **Dynamic variables:** the prompt uses nine. The dashboard asks for a placeholder for each; fill them with the ch. 9 values below. These act as defaults, so the long ones never need to go in a URL.
+5. **Dynamic variables:** the prompt uses nine. Each needs a placeholder value in the agent's dynamic-variables settings, or the agent sees blanks and says the session details didn't load. Fill them with the ch. 9 values below; they act as defaults, so the long ones never need to go in a URL. Simpler for a one-off test: substitute the values into the prompt text before pasting, and skip variables entirely.
 6. **Text input:** if the widget settings offer text input, turn it on. That's how you type the synthesis.
+7. **Save.** The talk page and the API use the saved agent, not an unsaved draft.
 
 No tools, knowledge base or data collection. Those come in Phase 2.
 
