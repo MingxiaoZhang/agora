@@ -84,3 +84,11 @@ Three or four lines are enough. Keep them for the Phase 0 decision in `PLAN.md`.
 - Model used, session length, and whether typed synthesis worked.
 
 **Decision:** if voice is clearly worse than text in a way prompt changes can't fix, stop and record why. Otherwise go on to Phase 1.
+
+## Results
+
+**2026-10-20, ch. 9.** Claude Sonnet 5.5, reasoning effort low, ElevenAgents dashboard.
+- **Hook:** landed, and led into a real debrief. The partner split "how hard for AI" from "who answers when it goes wrong", which is the tension the hook was built on.
+- **Discussion:** under way when the call ended. It stopped at exactly 600 seconds: the agent's default maximum conversation duration (10 minutes), not a token limit. A 25-minute session needs this raised to about 40 minutes.
+- **Friction:** setting up the agent by hand (prompt, nine variables, model, fillers, saving) was the most inconvenient part.
+- **Decision:** continue. Nothing so far suggests voice is worse than text in a way prompt changes can't fix.
