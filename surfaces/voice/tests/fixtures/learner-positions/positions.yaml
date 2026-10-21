@@ -1,0 +1,23 @@
+# Positions — see formats/learner.md
+- id: pos-0001
+  topic: which work AI takes first
+  current: "The hardest tasks for AI are the safest."   # hand-edited
+  status: holding
+  history:
+    - date: 2026-10-08
+      view: "The hardest tasks for AI are the safest."
+      why: "Hard things take longer to automate."
+      origin: {source: ai-future-is-now, unit: ch09, session: 2026-10-08}
+
+# A position from another book, which this session must leave alone.
+- id: pos-0002
+  topic: advice from interested parties
+  current: >
+    Biased advice can still be useful
+    if you know the bias.
+  status: unsure
+  history:
+    - date: 2026-10-12
+      view: "Biased advice can still be useful if you know the bias."
+      why: "Most advice comes from someone with a stake."
+      origin: {source: other-book, unit: u1, session: 2026-10-12}

@@ -1,0 +1,39 @@
+# Positions — see formats/learner.md
+- id: pos-0001
+  topic: which work AI takes first
+  current: mostly how hard it is for the AI, but if it goes wrong that's a different story
+  status: holding
+  history:
+    - date: 2026-10-08
+      view: "The hardest tasks for AI are the safest."
+      why: "Hard things take longer to automate."
+      origin: {source: ai-future-is-now, unit: ch09, session: 2026-10-08}
+    # Agent's summary: Difficulty for AI still matters most, but failure consequences are a separate variable.
+    - date: 2026-10-20
+      view: mostly how hard it is for the AI, but if it goes wrong that's a different story
+      why: Was weighing difficulty for both tasks.
+      origin: {source: ai-future-is-now, unit: ch09, session: 2026-10-20}
+
+# A position from another book, which this session must leave alone.
+- id: pos-0002
+  topic: advice from interested parties
+  current: >
+    Biased advice can still be useful
+    if you know the bias.
+  status: unsure
+  history:
+    - date: 2026-10-12
+      view: "Biased advice can still be useful if you know the bias."
+      why: "Most advice comes from someone with a stake."
+      origin: {source: other-book, unit: u1, session: 2026-10-12}
+# REVIEW: the agent's quote doesn't match the transcript (score 0.45). Closest thing you said: "Nowadays, I think AI does almost all of the diagnosing. What the on-call does is, uh, basically like a relay there."
+# Agent's summary: Accountability moves to whoever signs off, not whoever does the work.
+- id: pos-0003
+  topic: accountability under automation
+  current: accountability has moved to whoever signs off rather than whoever actually does the work
+  status: holding
+  history:
+    - date: 2026-10-20
+      view: accountability has moved to whoever signs off rather than whoever actually does the work
+      why: AI now does most diagnosing; on-call relays.
+      origin: {source: ai-future-is-now, unit: ch09, session: 2026-10-20}

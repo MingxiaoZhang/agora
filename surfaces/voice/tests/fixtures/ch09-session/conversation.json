@@ -1,0 +1,32 @@
+{
+  "conversation_id": "conv_fixture_ch09",
+  "agent_id": "agent_fixture",
+  "status": "done",
+  "transcript": [
+    {"role": "agent", "message": "Hi, I'm Agora. Today we're starting Two maps from Kai-Fu Lee's book, with a quick exercise first. Ready?", "time_in_call_secs": 0},
+    {"role": "user", "message": "Yes, let's begin.", "time_in_call_secs": 6},
+    {"role": "agent", "message": "The safest part of your job probably isn't the part you think. Pick the two tasks from your week you'd most hate to lose. For each, how likely is AI to do it as well as you within three years, and does it need you in particular?", "time_in_call_secs": 9},
+    {"role": "user", "message": "Okay. Feature development, I'd say seventy percent within three years.", "time_in_call_secs": 120},
+    {"role": "user", "message": "And on-call. On-call needs me in particular, because someone has to answer when production breaks.", "time_in_call_secs": 150},
+    {"role": "agent", "message": "So feature development at seventy percent, and on-call needs you because someone answers for outages. Is that right?", "time_in_call_secs": 175},
+    {"role": "user", "message": "Yes, that's right.", "time_in_call_secs": 182},
+    {"role": "agent", "message": "What were you weighing when you gave those numbers?", "time_in_call_secs": 186},
+    {"role": "user", "message": "Well, mostly how hard it is for the AI, uh, but if it goes wrong that's a different story, right?", "time_in_call_secs": 300},
+    {"role": "agent", "message": "That's two different variables. Who answers when on-call goes wrong today, and what does the AI do in that loop?", "time_in_call_secs": 320},
+    {"role": "user", "message": "Nowadays, I think AI does almost all of the diagnosing. What the on-call does is, uh, basically like a relay there.", "time_in_call_secs": 400},
+    {"role": "agent", "message": "I'd want to check how much these tools help experts compared with novices rather than guess. Let's keep going.", "time_in_call_secs": 520}
+  ],
+  "metadata": {"start_time_unix_secs": 1792591200, "call_duration_secs": 1500},
+  "analysis": {
+    "data_collection_results": {
+      "hook_format": {"data_collection_id": "hook_format", "value": "predict-and-commit", "rationale": "Asked for a prediction."},
+      "commitment": {"data_collection_id": "commitment", "value": "Feature development 70%; on-call needs me", "rationale": ""},
+      "core_idea": {"data_collection_id": "core_idea", "value": "What protects a task is who answers when it fails, not how hard it is.", "rationale": ""},
+      "conclusion": {"data_collection_id": "conclusion", "value": "Accountability, not difficulty, is the better predictor, if organizations pay for it.", "rationale": ""},
+      "open_questions": {"data_collection_id": "open_questions", "value": "Do organizations pay a premium for accountability? | Is a human who only signs off judging or absorbing blame?", "rationale": ""},
+      "hints_used": {"data_collection_id": "hints_used", "value": 1, "rationale": ""},
+      "answer_requested_before_attempt": {"data_collection_id": "answer_requested_before_attempt", "value": 0, "rationale": ""},
+      "converged": {"data_collection_id": "converged", "value": true, "rationale": ""}
+    }
+  }
+}

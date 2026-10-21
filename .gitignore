@@ -2,3 +2,6 @@
 *.zip
 node_modules/
 surfaces/voice/smoke/out/
+__pycache__/
+.pytest_cache/
+*.egg-info/
