@@ -39,4 +39,15 @@ copy_into surfaces/chatgpt/knowledge
   done
 } > surfaces/agents-md/AGENTS.md
 
+# Voice: one agent prompt, hand-written header + method concatenated.
+# Formats are left out: records are written after the call, not by the agent.
+mkdir -p surfaces/voice/generated
+{
+  cat surfaces/voice/agent/voice-header.md
+  for f in "${method[@]}"; do
+    printf '\n\n---\n\n<!-- %s -->\n\n' "$f"
+    sed -E 's/^(#+) /\1# /' "$f"
+  done
+} > surfaces/voice/generated/agent-prompt.md
+
 echo "Surfaces rebuilt from method/ and formats/."
