@@ -95,7 +95,7 @@ llm = "<claude model id from the ElevenLabs model list>"
 reasoning_effort = "low"
 language = "en"                 # discussion language
 save_transcripts = false        # if true, ingest keeps a transcript next to the session note
-max_duration_seconds = 1800
+max_duration_seconds = 2400    # 40 min; the platform default of 600 cuts sessions short
 
 [tool_ids]                      # written by setup
 record_commitment = "tool_..."
@@ -120,7 +120,7 @@ record_commitment = "tool_..."
       "first_message": "{{opening_line}}",
       "prompt": { "temperature": 0.6 }
     },
-    "conversation": { "max_duration_seconds": 1800 }
+    "conversation": { "max_duration_seconds": 2400 }
   }
 }
 ```
@@ -288,7 +288,7 @@ Per the surface rule, these go into `method/session.md` as a "Spoken sessions" s
 
 ## 14. Open questions to settle while building
 
-1. Exact Claude model ids in the ElevenLabs model list, and which gives acceptable turn latency.
+1. Exact Claude model ids in the ElevenLabs model list, and which gives acceptable turn latency. *Phase 0:* Claude Sonnet 5.5 (`claude-sonnet-5-5`) at low reasoning effort worked in the smoke test, with no latency complaints. Phase 2 still compares two models.
 2. Maximum `response_timeout_secs` for client tools, and whether silence while typing ends the call (affects `request_synthesis`).
 3. Whether tools are created via a separate tools endpoint and referenced by `tool_ids` (the agent schema marks inline `tools` as deprecated).
 4. Data-collection result shape in the conversation response (value plus rationale).

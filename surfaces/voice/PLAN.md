@@ -18,7 +18,7 @@ Sizes are rough, for one person working in spare time.
 
 ## Phase 0 — Voice prompt and smoke test
 
-**Status:** built; smoke test not yet run.
+**Status:** done. The smoke test passed; see the results in [`SMOKE-TEST.md`](SMOKE-TEST.md#results).
 
 **Why first:** before writing any CLI code, find out whether a spoken session with this method is any good.
 

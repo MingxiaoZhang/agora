@@ -25,20 +25,22 @@ The session is the "Why AI transformations fail" unit, opening with the "40% fas
 
 ## 2. Create the agent
 
-In the ElevenLabs dashboard, create a new blank agent. Setting names below may differ slightly in the current UI.
+Agents live in the ElevenAgents product, not ElevenCreative: switch products from the sidebar, or go to https://elevenlabs.io/app/agents. Create a new blank agent. Setting names below may differ slightly in the current UI.
 
 | Setting | Value |
 |---|---|
 | Name | Agora (smoke) |
-| System prompt | Paste all of `system-prompt.md` |
+| System prompt | Paste all of `smoke/out/system-prompt.md`, the filled copy. If you paste `generated/agent-prompt.smoke.md` instead, every `{{variable}}` arrives blank unless it has a placeholder value in the agent's dynamic-variables settings, and the agent says the session details didn't load |
 | First message | Paste `first-message.txt` |
 | LLM | A Claude Sonnet-class model, lowest reasoning effort |
 | Language | English |
 | Voice | Anything calm and conversational |
 | Text normalization | ElevenLabs' normalizer, if offered (so numbers are spoken correctly) |
-| Max conversation duration | 30 minutes |
+| Max conversation duration | 40 minutes (2400 seconds). The default is 10 minutes, which cuts a 25-minute session off mid-discussion |
 | Silence / turn timeout | As long as allowed, since writing the synthesis takes a minute of silence |
 | Conversation retention | Short; this transcript is your thinking |
+
+Then **save** the agent. The talk page and the API use the saved agent, not an unsaved draft.
 
 Don't edit the prompt in the dashboard. If something needs changing, change `surfaces/voice/agent/` or `method/` in the repo, rebuild, re-fill and re-paste, so fixes don't get lost in the dashboard.
 
@@ -91,3 +93,11 @@ What I'd change first:
 - **Stop** if spoken discussion is clearly worse in a way no prompt change can fix: it's too shallow, too slow, or too awkward to think aloud. In that case, voice waits until there's a different design.
 
 If latency is the main problem, the first thing to try is trimming the prompt. The candidates are the session intro paragraph and the moves table, either shortened or moved into the unit brief.
+
+## Results
+
+**2026-10-20, ch. 9.** This run used the first Phase 0 prompt (from the `phase-0-voice-prompt` branch, since merged): the whole method including `hooks.md`, with the prepared "two tasks" hook and the other session details passed as nine variables. Claude Sonnet 5.5, reasoning effort low, ElevenAgents dashboard.
+- **Hook:** landed, and led into a real debrief. The partner split "how hard for AI" from "who answers when it goes wrong", which is the tension the hook was built on.
+- **Discussion:** under way when the call ended. It stopped at exactly 600 seconds: the agent's default maximum conversation duration, not a token limit. Hence the 40-minute setting above.
+- **Friction:** setting up the agent by hand (prompt, variables, model, fillers, saving) was the most inconvenient part.
+- **Decision:** continue to Phase 1. Nothing so far suggests voice is worse than text in a way prompt changes can't fix.

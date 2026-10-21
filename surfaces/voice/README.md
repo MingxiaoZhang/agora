@@ -6,7 +6,7 @@ Spoken Agora sessions, built on ElevenLabs' voice agents (ElevenAgents) with hos
 - [`PLAN.md`](PLAN.md): phased implementation plan
 - [`SMOKE-TEST.md`](SMOKE-TEST.md): **start here.** Phase 0, a hand-run spoken session with no code
 
-**Status:** Phase 0 is built. The voice prompt is generated from `method/` by `scripts/build-surfaces.sh`. The next step is running the smoke test.
+**Status:** Phase 0 is done: the smoke test passed (results in [`SMOKE-TEST.md`](SMOKE-TEST.md#results)). Phase 1, the offline core, is in progress.
 
 Rules that apply to any spoken session live in `method/session.md` under "Spoken sessions", not here. This folder holds only what's specific to ElevenLabs.
 
