@@ -141,3 +141,35 @@ def test_hook_comes_from_the_session_log(learner_repo):
     (hook,) = r.of("record_hook")
     assert hook.source == "session" and hook.verified
     assert hook.params["headline"].startswith("A team made contract review 40% faster")
+
+
+def test_ingest_by_session_name_and_env_repo(learner_repo, monkeypatch, capsys):
+    cfg = config.load(learner_repo)
+    cfg.web_agent_id = "agent_web"
+    config.save(cfg)
+    log = web_log(learner_repo)
+    monkeypatch.setattr(cli, "_api", lambda: Api(("done",)))
+    monkeypatch.setenv("AGORA_LEARNER_REPO", str(learner_repo))
+
+    assert cli.main(["ingest", "nope"]) == 1
+    assert "No log for session nope in" in capsys.readouterr().err
+    assert cli.main(["ingest", log.path.stem]) == 0
+    assert EventLog(log.path).conversation_id == "conv_fixture_web"
+
+
+def test_missing_synthesis_is_asked_at_ingest(learner_repo, monkeypatch, capsys):
+    cfg = config.load(learner_repo)
+    cfg.web_agent_id = "agent_web"
+    config.save(cfg)
+    log = web_log(learner_repo)
+    api = Api(("done",))
+    api.conv["transcript"] = [t for t in api.conv["transcript"] if t.get("source_medium") != "text"]
+    monkeypatch.setattr(cli, "_api", lambda: api)
+    monkeypatch.setattr("sys.stdin.isatty", lambda: True)
+    answers = iter(["Typed after the call.", ""])
+    monkeypatch.setattr("builtins.input", lambda: next(answers))
+
+    assert cli.main(["ingest", log.path.stem, "--learner-repo", str(learner_repo)]) == 0
+    assert "Synthesis: written after the call, not critiqued." in capsys.readouterr().out
+    note = (learner_repo / "sources" / SOURCE / "sessions" / "2026-10-21.md").read_text(encoding="utf-8")
+    assert "Typed after the call." in note

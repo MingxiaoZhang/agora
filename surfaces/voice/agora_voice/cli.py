@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -14,7 +15,9 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     def repo_arg(p):
-        p.add_argument("--learner-repo", type=Path, default=Path("."), metavar="DIR")
+        p.add_argument("--learner-repo", type=Path, metavar="DIR",
+                       default=Path(os.environ.get("AGORA_LEARNER_REPO", ".")).expanduser(),
+                       help="Your learner repo. Default: $AGORA_LEARNER_REPO, else the current folder.")
 
     p = sub.add_parser("setup", help="Create or update the ElevenLabs tools and agents. Safe to re-run.")
     repo_arg(p)
@@ -29,8 +32,9 @@ def build_parser() -> argparse.ArgumentParser:
     mode.add_argument("--text", action="store_true", help="Type in the terminal.")
 
     p = sub.add_parser("ingest", help="Turn a finished session into a session note and record drafts.")
-    p.add_argument("conversation_id", nargs="?",
-                   help="Default: the conversation for the newest session not yet ingested.")
+    p.add_argument("session", nargs="?", metavar="SESSION_OR_CONVERSATION",
+                   help="A session log name (e.g. 20261022T005152Z) or a conversation id (conv_...). "
+                        "Default: the newest session not yet ingested.")
     p.add_argument("--from-fixture", type=Path, metavar="DIR",
                    help="Read events.jsonl and conversation.json from DIR instead of the API.")
     repo_arg(p)
@@ -49,11 +53,14 @@ def _api():
     return Api(config.api_key())
 
 
-def ingest_latest(learner_repo: Path, conversation_id: str | None = None) -> int:
+def ingest_latest(learner_repo: Path, session: str | None = None) -> int:
     """Find the session's conversation on ElevenLabs, wait for it to be processed, and render it."""
-    log = ingest.find_log(learner_repo, conversation_id)
+    conversation_id = session if session and session.startswith("conv_") else None
+    log = ingest.find_log(learner_repo, conversation_id, None if conversation_id else session)
     if log is None:
-        print("No session log to ingest. Pass a conversation id.", file=sys.stderr)
+        where = learner_repo.resolve() / ingest.SESSIONS_DIR
+        what = f"session {session}" if session else "a session that hasn't been ingested"
+        print(f"No log for {what} in {where}. Is --learner-repo right?", file=sys.stderr)
         return 1
     api, cfg = _api(), config.load(learner_repo)
     if not conversation_id:
@@ -67,12 +74,33 @@ def ingest_latest(learner_repo: Path, conversation_id: str | None = None) -> int
             return 1
     print(f"Fetching {conversation_id} from ElevenLabs...")
     try:
-        r, written = ingest.ingest_conversation(learner_repo, log, ingest.fetch(api, conversation_id))
+        conversation = ingest.fetch(api, conversation_id)
+        if not log.events("ingested") and not ingest.has_synthesis(log, conversation) and sys.stdin.isatty():
+            ask_synthesis(log)
+        r, written = ingest.ingest_conversation(learner_repo, log, conversation)
     except ingest.IngestError as e:
         print(e, file=sys.stderr)
         return 1
     print(ingest.summary(r, written, learner_repo))
     return 0
+
+
+def ask_synthesis(log) -> None:
+    """The call ended before the synthesis: ask for it here, as the method requires it written."""
+    print("\nThe call ended before your synthesis. Type it now: what you now believe, what moved you, "
+          "and what is still unresolved, in two or three sentences. Press Enter on an empty line to finish, "
+          "or just Enter to skip.")
+    lines = []
+    while True:
+        try:
+            line = input()
+        except EOFError:
+            break
+        if not line.strip():
+            break
+        lines.append(line)
+    if lines:
+        log.append("request_synthesis", prompt="post-call", synthesis="\n".join(lines), source="post-call")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -102,7 +130,8 @@ def main(argv: list[str] | None = None) -> int:
                 try:
                     input()
                 except (KeyboardInterrupt, EOFError):
-                    print(f"\nSession log kept at {log.path}. Run `agora-voice ingest` after the call.")
+                    print(f"\nSession log kept. After the call, run:\n  agora-voice ingest {log.path.stem} "
+                          f"--learner-repo {args.learner_repo}")
                     return 0
             else:
                 log = talk.run_text(args.learner_repo, source, args.unit, args.minutes)
@@ -117,7 +146,7 @@ def main(argv: list[str] | None = None) -> int:
             r, written = ingest.ingest_files(d / "events.jsonl", d / "conversation.json", args.learner_repo)
             print(ingest.summary(r, written, args.learner_repo))
         else:
-            return ingest_latest(args.learner_repo, args.conversation_id)
+            return ingest_latest(args.learner_repo, args.session)
     return 0
 
 

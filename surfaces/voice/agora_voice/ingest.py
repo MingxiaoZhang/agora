@@ -54,14 +54,21 @@ def session_logs(learner_repo: Path) -> list[EventLog]:
     return [EventLog(p) for p in sorted(d.glob("*.jsonl"), reverse=True)] if d.exists() else []
 
 
-def find_log(learner_repo: Path, conversation_id: str | None) -> EventLog | None:
-    """The log for this conversation, else the newest log not yet tied to one."""
+def find_log(learner_repo: Path, conversation_id: str | None, name: str | None = None) -> EventLog | None:
+    """The log with this name, or for this conversation, else the newest log not yet tied to one."""
     logs = session_logs(learner_repo)
+    if name:
+        return next((log for log in logs if log.path.stem == name), None)
     if conversation_id:
         for log in logs:
             if log.conversation_id == conversation_id:
                 return log
     return next((log for log in logs if not log.conversation_id), None)
+
+
+def has_synthesis(log: EventLog, conversation: dict) -> bool:
+    from .reconcile import typed_synthesis
+    return any(e.params.get("synthesis") for e in log.events("request_synthesis")) or bool(typed_synthesis(conversation))
 
 
 def ingest_conversation(learner_repo: Path, log: EventLog, conversation: dict) -> tuple[Reconciled, Written]:

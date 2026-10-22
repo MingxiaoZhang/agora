@@ -51,7 +51,7 @@
   },
   "positions": {
     "type": "string",
-    "description": "Each position the learner stated or changed during the session, in order. Format each one as: topic ## the learner's own words ## new, moved or hardened. The topic is a few words naming the general idea, reused when the same position develops. Separate positions with ' || '. Empty if none. Do not include the learner's typed synthesis or the open questions."
+    "description": "Each position the learner stated or changed during the session, in order. Format each one as: topic ## the learner's own words ## new, moved or hardened. The topic names the general idea in a few words, specific enough to stand on its own, e.g. 'what counts as success for an AI project', not 'success'. Reuse it when the same position develops; use a new topic for a different question. Separate positions with ' || '. Empty if none. Do not include the learner's typed synthesis or the open questions."
   },
   "research_questions": {
     "type": "string",
