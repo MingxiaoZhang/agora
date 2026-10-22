@@ -26,3 +26,11 @@ def test_api_key_from_env(monkeypatch):
         config.api_key()
     monkeypatch.setenv(config.API_KEY_ENV, "k")
     assert config.api_key() == "k"
+
+
+def test_default_learner_repo(tmp_path, monkeypatch):
+    assert config.default_learner_repo() == config.Path(".")
+    config.remember_learner_repo(tmp_path / "repo")
+    assert config.default_learner_repo() == (tmp_path / "repo").resolve()
+    monkeypatch.setenv(config.LEARNER_REPO_ENV, "~/elsewhere")
+    assert config.default_learner_repo() == config.Path("~/elsewhere").expanduser()

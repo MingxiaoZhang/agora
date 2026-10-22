@@ -17,6 +17,25 @@ except ModuleNotFoundError:  # Python 3.10
 
 CONFIG_PATH = Path(".agora") / "voice.toml"
 API_KEY_ENV = "ELEVENLABS_API_KEY"
+LEARNER_REPO_ENV = "AGORA_LEARNER_REPO"
+# Remembers the learner repo `setup` last ran on, so other commands don't need --learner-repo.
+USER_CONFIG = Path("~/.config/agora/voice.toml").expanduser()
+
+
+def default_learner_repo() -> Path:
+    """$AGORA_LEARNER_REPO, else the repo `setup` last ran on, else the current folder."""
+    if os.environ.get(LEARNER_REPO_ENV):
+        return Path(os.environ[LEARNER_REPO_ENV]).expanduser()
+    if USER_CONFIG.exists():
+        repo = tomllib.loads(USER_CONFIG.read_text(encoding="utf-8")).get("learner_repo")
+        if repo:
+            return Path(repo)
+    return Path(".")
+
+
+def remember_learner_repo(learner_repo: Path) -> None:
+    USER_CONFIG.parent.mkdir(parents=True, exist_ok=True)
+    USER_CONFIG.write_text(f"learner_repo = {json.dumps(str(Path(learner_repo).resolve()))}\n", encoding="utf-8")
 
 
 @dataclass

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 from pathlib import Path
 
@@ -15,9 +14,9 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     def repo_arg(p):
-        p.add_argument("--learner-repo", type=Path, metavar="DIR",
-                       default=Path(os.environ.get("AGORA_LEARNER_REPO", ".")).expanduser(),
-                       help="Your learner repo. Default: $AGORA_LEARNER_REPO, else the current folder.")
+        p.add_argument("--learner-repo", type=Path, metavar="DIR", default=None,
+                       help="Your learner repo. Default: $AGORA_LEARNER_REPO, else the one `setup` "
+                            "last ran on, else the current folder.")
 
     p = sub.add_parser("setup", help="Create or update the ElevenLabs tools and agents. Safe to re-run.")
     repo_arg(p)
@@ -105,6 +104,8 @@ def ask_synthesis(log) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.learner_repo is None:
+        args.learner_repo = config.default_learner_repo()
     if args.command == "setup":
         from .provision import ProvisionError, setup
         try:
@@ -112,6 +113,7 @@ def main(argv: list[str] | None = None) -> int:
         except ProvisionError as e:
             print(e, file=sys.stderr)
             return 1
+        config.remember_learner_repo(args.learner_repo)
         print("\n".join(result.changes) if result.changes else "Already up to date; nothing changed.")
         print(f"Agents: {result.agent_id} (text), {result.web_agent_id} (web)  "
               f"(saved to {config.load(args.learner_repo).path})")
