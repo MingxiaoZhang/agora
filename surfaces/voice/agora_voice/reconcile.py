@@ -68,7 +68,7 @@ def best_match(quote: str, user_turns: list[str]) -> Match:
 class Item:
     tool: str
     params: dict[str, Any]
-    source: str = "tool"                # tool | post-call-extraction
+    source: str = "tool"                # tool | session | post-call-extraction
     verified: bool = True
     score: float | None = None
     closest_turn: str | None = None
@@ -79,13 +79,13 @@ class Item:
 
     def review_note(self) -> str | None:
         """Why the learner should check this item, or None if it checked out."""
-        if self.source == "post-call-extraction":
-            return "extracted after the call, not recorded during it; check it against what you said."
         if self.verified:
             return None
+        if self.source == "post-call-extraction" and not self.quote:
+            return "extracted after the call, not recorded during it; check it against what you said."
         if self.closest_turn:
-            return f"the agent's quote doesn't match the transcript (score {self.score:.2f}). Closest thing you said: \"{self.closest_turn}\""
-        return "the agent's quote doesn't match anything you said in the transcript."
+            return f"the quote doesn't match the transcript (score {self.score:.2f}). Closest thing you said: \"{self.closest_turn}\""
+        return "the quote doesn't match anything you said in the transcript."
 
 
 @dataclass
@@ -162,30 +162,92 @@ def reconcile(log: EventLog, conversation: dict, threshold: float = THRESHOLD) -
         params = dict(event.params)
         if event.tool == "record_converge":
             params["open_questions"] = _split_questions(params.get("open_questions"))
-        item = Item(event.tool, params)
-        if item.quote:
-            match = best_match(item.quote, turns)
-            item.score = round(match.score, 3)
-            item.verified = match.score >= threshold
-            if not item.verified:
-                item.closest_turn = match.turn or None
-        result.items.append(item)
+        result.items.append(_check(Item(event.tool, params), turns, threshold))
 
-    _fallback(result)
+    _fallback(result, turns, threshold)
+    if result.synthesis is None:
+        text = typed_synthesis(conversation)
+        if text:
+            result.synthesis = Synthesis(text, "typed-in-call")
     return result
 
 
-def _fallback(result: Reconciled) -> None:
+def _check(item: Item, turns: list[str], threshold: float) -> Item:
+    """Verbatim check of the item's learner_quote against what the learner said."""
+    if item.quote:
+        match = best_match(item.quote, turns)
+        item.score = round(match.score, 3)
+        item.verified = match.score >= threshold
+        if not item.verified:
+            item.closest_turn = match.turn or None
+    return item
+
+
+SYNTHESIS_ASK = "text box"  # the web prompt asks for the synthesis "in the text box"
+
+
+def typed_synthesis(conversation: dict) -> str | None:
+    """The synthesis typed on the web talk page: the typed reply to the agent's
+    last request for it, which the transcript marks with `source_medium: text`.
+    Without such a request, the learner's last run of typed messages."""
+    turns = [t for t in conversation.get("transcript") or [] if t.get("message")]
+    asks = [i for i, t in enumerate(turns) if t.get("role") == "agent" and SYNTHESIS_ASK in t["message"].lower()]
+    run: list[str] = []
+    for t in turns[asks[-1] + 1:] if asks else turns:
+        if t.get("role") != "user":
+            if asks and run:
+                break  # the agent's critique follows the synthesis
+            continue
+        if t.get("source_medium") == "text":
+            run.append(t["message"].strip())
+        elif asks and run:
+            break
+        else:
+            run = []
+    return "\n".join(run) or None
+
+
+def _positions(value: Any) -> list[dict[str, str]]:
+    """Parse "topic ## words ## change || ..." from data collection."""
+    out = []
+    for entry in str(value or "").split("||"):
+        parts = [p.strip() for p in entry.split("##")]
+        if len(parts) >= 2 and parts[0] and parts[1]:
+            change = parts[2].lower() if len(parts) > 2 and parts[2].lower() in ("new", "moved", "hardened") else "new"
+            out.append({"topic": parts[0], "view": parts[1], "why": "", "learner_quote": parts[1], "change": change})
+    return out
+
+
+def _fallback(result: Reconciled, turns: list[str], threshold: float) -> None:
+    """Fill record types that have no tool event from post-call data collection.
+    Items that carry the learner's words get the same verbatim check as tool
+    quotes; the rest are always marked for review."""
     data = result.data
 
     def extracted(tool: str, params: dict[str, Any]) -> None:
-        result.items.append(Item(tool, params, source="post-call-extraction", verified=False))
+        item = Item(tool, params, source="post-call-extraction", verified=False)
+        result.items.append(_check(item, turns, threshold))
 
-    if not result.of("record_hook") and (data.get("hook_format") or data.get("hook_headline")):
-        extracted("record_hook", {"format": data.get("hook_format", ""), "headline": data.get("hook_headline", "")})
+    if not result.of("record_hook"):
+        if result.session.get("hook_headline"):
+            # The hook was prepared and passed in, so the session log already knows it.
+            result.items.append(Item("record_hook", {"format": result.session.get("hook_format") or data.get("hook_format", ""),
+                                                     "headline": result.session["hook_headline"]}, source="session"))
+        elif data.get("hook_format") or data.get("hook_headline"):
+            extracted("record_hook", {"format": data.get("hook_format", ""), "headline": data.get("hook_headline", "")})
     if not result.of("record_commitment") and data.get("commitment"):
-        extracted("record_commitment", {"kind": "position", "summary": data["commitment"],
-                                        "learner_quote": data["commitment"]})
+        params = {"kind": data.get("commitment_kind") or "position", "summary": data["commitment"],
+                  "learner_quote": data["commitment"]}
+        confidence = data.get("commitment_confidence")
+        if confidence not in (None, ""):
+            params["confidence"] = int(confidence) if float(confidence).is_integer() else confidence
+        extracted("record_commitment", params)
+    if not result.of("record_position"):
+        for params in _positions(data.get("positions")):
+            extracted("record_position", params)
+    if not result.of("queue_research"):
+        for q in _split_questions(data.get("research_questions")):
+            extracted("queue_research", {"question": q, "why_it_matters": ""})
     if not result.of("record_converge") and (data.get("core_idea") or data.get("conclusion")):
         extracted("record_converge", {"core_idea": data.get("core_idea", ""),
                                       "conclusion": data.get("conclusion", ""),

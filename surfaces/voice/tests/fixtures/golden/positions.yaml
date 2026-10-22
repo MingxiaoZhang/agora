@@ -26,7 +26,7 @@
       view: "Biased advice can still be useful if you know the bias."
       why: "Most advice comes from someone with a stake."
       origin: {source: other-book, unit: u1, session: 2026-10-12}
-# REVIEW: the agent's quote doesn't match the transcript (score 0.45). Closest thing you said: "Nowadays, I think AI does almost all of the diagnosing. What the on-call does is, uh, basically like a relay there."
+# REVIEW: the quote doesn't match the transcript (score 0.45). Closest thing you said: "Nowadays, I think AI does almost all of the diagnosing. What the on-call does is, uh, basically like a relay there."
 # Agent's summary: Accountability moves to whoever signs off, not whoever does the work.
 - id: pos-0003
   topic: accountability under automation

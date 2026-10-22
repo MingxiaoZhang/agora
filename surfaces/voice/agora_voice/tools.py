@@ -8,9 +8,10 @@ Each line is flushed to disk as it is written, so a call that dies midway
 keeps every event up to that point. The reader skips a final line cut off
 mid-write rather than failing.
 
-Two entries are not agent tool calls: `session_start` (written by `new`, with
-the source, unit and hook the session was built from) and `conversation`
-(written by `set_conversation_id`).
+Three entries are not agent tool calls: `session_start` (written by `new`, with
+the source, unit, hook, mode and start time the session was built from),
+`conversation` (written by `set_conversation_id`), and `ingested` (written once
+the session's records have been rendered, so they aren't rendered twice).
 """
 
 from __future__ import annotations

@@ -81,7 +81,9 @@ Sizes are rough, for one person working in spare time.
 
 ## Phase 3 — Voice end to end
 
-**Deliverables**
+**Changed:** voice moved to ElevenLabs' talk page in the browser (`talk --web`, `DESIGN.md` §9a), to avoid local audio under WSL. Built: the web agent, `talk --web`, `ingest` against the live API (polling, matching a conversation to its session log, refusing double ingests), and `talk` running `ingest` automatically. Tested against the live API with a scripted session on the web agent; a spoken session is next. Local audio in the CLI, below, is no longer planned unless the talk page falls short.
+
+**Original deliverables**
 - `talk.py` with audio: `DefaultAudioInterface`, a live transcript in the terminal, clean Ctrl+C, and the conversation id captured.
 - `request_synthesis` in voice, with the post-call fallback if the call drops.
 - `ingest.py` against the live API: polls until processing is done, reconciles, writes drafts, and prints the summary (counts, items to review, research queued, duration).

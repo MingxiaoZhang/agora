@@ -1,4 +1,5 @@
-"""Run a session (DESIGN.md §9). Phase 2 has the text-only mode; audio comes in Phase 3.
+"""Run a session (DESIGN.md §9): typed in the terminal (`run_text`), or spoken on
+ElevenLabs' talk page in the browser (`start_web`).
 
 The terminal is shared by the conversation and `request_synthesis`, so one
 thread reads stdin and `Terminal` routes each line: to the agent normally,
@@ -7,11 +8,18 @@ or into the synthesis while the agent is waiting for one.
 
 from __future__ import annotations
 
+import base64
 import hashlib
+import json
 import queue
 import re
+import shutil
+import subprocess
 import sys
 import threading
+import time
+import urllib.parse
+import webbrowser
 from datetime import date
 from pathlib import Path
 from typing import Callable, TextIO
@@ -87,6 +95,42 @@ def strip_fillers(text: str, phrases: list[str]) -> str:
     return text
 
 
+def new_log(learner_repo: Path, session: context.Session, mode: str) -> EventLog:
+    return EventLog.new(learner_repo, source=session.source, unit=session.unit, hook_headline=session.hook_headline,
+                        hook_format=session.variables["hook_format"],
+                        session_minutes=session.variables["session_minutes"], date=date.today().isoformat(),
+                        mode=mode, started=int(time.time()))
+
+
+TALK_PAGE = "https://elevenlabs.io/app/talk-to"
+
+
+def talk_url(agent_id: str, variables: dict) -> str:
+    """The talk page URL with the session variables as base64 JSON in `vars`.
+    ASCII-only JSON, so non-Latin text survives the page's base64 decoding."""
+    encoded = base64.b64encode(json.dumps(variables, ensure_ascii=True).encode()).decode()
+    return f"{TALK_PAGE}?{urllib.parse.urlencode({'agent_id': agent_id, 'vars': encoded})}"
+
+
+def open_in_browser(url: str) -> bool:
+    """Open a URL, preferring the Windows browser when running under WSL."""
+    if shutil.which("wslview"):
+        return subprocess.run(["wslview", url]).returncode == 0
+    if shutil.which("explorer.exe"):
+        subprocess.run(["explorer.exe", url])  # returns 1 even when it works
+        return True
+    return webbrowser.open(url)
+
+
+def start_web(learner_repo: Path, source: str, unit: str | None, minutes: int | None) -> tuple[EventLog, str]:
+    """Log the session's start and return the talk page URL for it."""
+    cfg = config_mod.load(learner_repo)
+    if not cfg.web_agent_id:
+        raise RuntimeError("No web agent yet. Run `agora-voice setup` first.")
+    session = context.build(learner_repo, source, unit, minutes)
+    return new_log(learner_repo, session, "web"), talk_url(cfg.web_agent_id, session.variables)
+
+
 def user_id(learner_repo: Path) -> str:
     return hashlib.sha256(str(Path(learner_repo).resolve()).encode()).hexdigest()[:16]
 
@@ -98,8 +142,7 @@ def run_text(learner_repo: Path, source: str, unit: str | None, minutes: int | N
     if not cfg.agent_id:
         raise RuntimeError("No agent yet. Run `agora-voice setup` first.")
     session = context.build(learner_repo, source, unit, minutes)
-    log = EventLog.new(learner_repo, source=session.source, unit=session.unit, hook_headline=session.hook_headline,
-                       session_minutes=session.variables["session_minutes"], date=date.today().isoformat())
+    log = new_log(learner_repo, session, "text")
     term = terminal or Terminal()
     handlers = Handlers(log, term.read_synthesis)
     ended = threading.Event()

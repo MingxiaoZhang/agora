@@ -53,10 +53,16 @@ def test_creates_tools_and_agent_and_saves_ids(cfg):
     api = FakeApi()
     result = provision.setup(cfg, api)
     assert len(result.tool_ids) == 7 and "queue_research" in result.tool_ids
-    assert result.changes[-1] == "created agent"
+    assert result.changes[-2:] == ["created agent", "created web agent"]
 
     saved = config.load(cfg.learner_repo)
     assert saved.agent_id == result.agent_id and saved.tool_ids == result.tool_ids
+    assert saved.web_agent_id == result.web_agent_id != result.agent_id
+
+    web = api.agents[result.web_agent_id]
+    assert web["name"] == "Agora (web)"
+    assert web["conversation_config"]["agent"]["prompt"]["tool_ids"] == []
+    assert web["conversation_config"]["agent"]["prompt"]["prompt"] == provision.WEB_PROMPT.read_text(encoding="utf-8")
 
     agent = api.agents[result.agent_id]
     prompt = agent["conversation_config"]["agent"]["prompt"]
@@ -68,7 +74,7 @@ def test_creates_tools_and_agent_and_saves_ids(cfg):
     assert agent["conversation_config"]["conversation"]["max_duration_seconds"] == 2400
     assert agent["conversation_config"]["agent"]["first_message"] == "{{opening_line}}"
     assert "synthesis" not in agent["platform_settings"]["data_collection"]
-    assert len(agent["platform_settings"]["data_collection"]) == 9
+    assert {"positions", "research_questions", "commitment_kind"} <= set(agent["platform_settings"]["data_collection"])
 
 
 def test_second_run_changes_nothing(cfg):
@@ -84,7 +90,7 @@ def test_updates_only_what_changed(cfg, monkeypatch):
     provision.setup(cfg, api)
     cfg = config.load(cfg.learner_repo)
     cfg.llm = "claude-haiku-5-5"
-    assert provision.setup(cfg, api).changes == ["updated agent"]
+    assert provision.setup(cfg, api).changes == ["updated agent", "updated web agent"]
 
 
 def test_recreates_a_tool_deleted_on_elevenlabs(cfg):
@@ -102,6 +108,8 @@ def test_refuses_stale_prompt(tmp_path, monkeypatch):
     os.utime(prompt, (0, 0))
     with pytest.raises(provision.ProvisionError, match="build-surfaces.sh"):
         provision.check_prompt_fresh(prompt)
+    with pytest.raises(provision.ProvisionError, match="missing"):
+        provision.check_prompt_fresh(tmp_path / "none.md")
 
 
 def test_contains():

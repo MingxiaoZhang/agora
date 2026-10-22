@@ -21,6 +21,8 @@ from .config import Config
 SURFACE_DIR = Path(__file__).resolve().parents[1]
 AGENT_DIR = SURFACE_DIR / "agent"
 PROMPT = SURFACE_DIR / "generated" / "agent-prompt.md"
+WEB_PROMPT = SURFACE_DIR / "generated" / "agent-prompt.web.md"
+WEB_NAME = "Agora (web)"
 REPO_ROOT = SURFACE_DIR.parents[1]
 API = "https://api.elevenlabs.io"
 
@@ -58,15 +60,16 @@ class Api:
         return self.request("PATCH", path, body)
 
 
-def check_prompt_fresh(prompt: Path = PROMPT) -> None:
+def check_prompt_fresh(*prompts: Path) -> None:
     """Refuse a generated prompt older than anything it's built from."""
-    if not prompt.exists():
-        raise ProvisionError(f"{prompt} is missing. Run scripts/build-surfaces.sh.")
-    sources = list((REPO_ROOT / "method").glob("*.md")) + list(AGENT_DIR.glob("*.md"))
-    newer = [s for s in sources if s.stat().st_mtime > prompt.stat().st_mtime]
-    if newer:
-        names = ", ".join(str(s.relative_to(REPO_ROOT)) for s in newer)
-        raise ProvisionError(f"The generated prompt is older than {names}. Run scripts/build-surfaces.sh.")
+    for prompt in prompts or (PROMPT, WEB_PROMPT):
+        if not prompt.exists():
+            raise ProvisionError(f"{prompt} is missing. Run scripts/build-surfaces.sh.")
+        sources = list((REPO_ROOT / "method").glob("*.md")) + list(AGENT_DIR.glob("*.md"))
+        newer = [s for s in sources if s.stat().st_mtime > prompt.stat().st_mtime]
+        if newer:
+            names = ", ".join(str(s.relative_to(REPO_ROOT)) for s in newer)
+            raise ProvisionError(f"{prompt.name} is older than {names}. Run scripts/build-surfaces.sh.")
 
 
 def contains(actual: Any, desired: Any) -> bool:
@@ -93,7 +96,7 @@ def load_json(name: str) -> Any:
     return json.loads((AGENT_DIR / name).read_text(encoding="utf-8"))
 
 
-def agent_body(cfg: Config, tool_ids: list[str], prompt: str) -> dict:
+def agent_body(cfg: Config, tool_ids: list[str], prompt: str, name: str | None = None) -> dict:
     extra: dict[str, Any] = {
         "conversation_config": {
             "agent": {
@@ -109,6 +112,8 @@ def agent_body(cfg: Config, tool_ids: list[str], prompt: str) -> dict:
     }
     if cfg.voice_id:
         extra["conversation_config"]["tts"] = {"voice_id": cfg.voice_id}
+    if name:
+        extra["name"] = name
     return merge(load_json("agent.template.json"), extra)
 
 
@@ -116,6 +121,7 @@ def agent_body(cfg: Config, tool_ids: list[str], prompt: str) -> dict:
 class Result:
     tool_ids: dict[str, str] = field(default_factory=dict)
     agent_id: str = ""
+    web_agent_id: str = ""
     changes: list[str] = field(default_factory=list)   # e.g. "created tool record_hook"
 
 
@@ -138,23 +144,30 @@ def sync_tools(api: Api, cfg: Config, result: Result) -> None:
         result.tool_ids[name] = tool_id
 
 
-def sync_agent(api: Api, cfg: Config, result: Result) -> None:
-    prompt = PROMPT.read_text(encoding="utf-8")
-    body = agent_body(cfg, [result.tool_ids[t["name"]] for t in load_json("tools.json")], prompt)
+def sync_agent(api: Api, agent_id: str | None, body: dict, label: str, result: Result) -> str:
+    """Create the agent, or update it if it differs from `body`. Returns its id."""
     current = None
-    if cfg.agent_id:
+    if agent_id:
         try:
-            current = api.get(f"/v1/convai/agents/{cfg.agent_id}")
+            current = api.get(f"/v1/convai/agents/{agent_id}")
         except KeyError:
             current = None
     if current is None:
-        result.agent_id = api.post("/v1/convai/agents/create", body)["agent_id"]
-        result.changes.append("created agent")
-    else:
-        result.agent_id = cfg.agent_id
-        if not contains(current, body):
-            api.patch(f"/v1/convai/agents/{cfg.agent_id}", body)
-            result.changes.append("updated agent")
+        result.changes.append(f"created {label}")
+        return api.post("/v1/convai/agents/create", body)["agent_id"]
+    if not contains(current, body):
+        api.patch(f"/v1/convai/agents/{agent_id}", body)
+        result.changes.append(f"updated {label}")
+    return agent_id
+
+
+def sync_agents(api: Api, cfg: Config, result: Result) -> None:
+    tool_ids = [result.tool_ids[t["name"]] for t in load_json("tools.json")]
+    cli = agent_body(cfg, tool_ids, PROMPT.read_text(encoding="utf-8"))
+    result.agent_id = sync_agent(api, cfg.agent_id, cli, "agent", result)
+    # The web agent runs on ElevenLabs' talk page, where client tools can't run.
+    web = agent_body(cfg, [], WEB_PROMPT.read_text(encoding="utf-8"), WEB_NAME)
+    result.web_agent_id = sync_agent(api, cfg.web_agent_id, web, "web agent", result)
 
 
 def setup(cfg: Config, api: Api | None = None) -> Result:
@@ -162,7 +175,7 @@ def setup(cfg: Config, api: Api | None = None) -> Result:
     api = api or Api(config_mod.api_key())
     result = Result()
     sync_tools(api, cfg, result)
-    sync_agent(api, cfg, result)
-    cfg.agent_id, cfg.tool_ids = result.agent_id, result.tool_ids
+    sync_agents(api, cfg, result)
+    cfg.agent_id, cfg.web_agent_id, cfg.tool_ids = result.agent_id, result.web_agent_id, result.tool_ids
     config_mod.save(cfg)
     return result

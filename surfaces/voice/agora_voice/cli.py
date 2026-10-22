@@ -16,18 +16,22 @@ def build_parser() -> argparse.ArgumentParser:
     def repo_arg(p):
         p.add_argument("--learner-repo", type=Path, default=Path("."), metavar="DIR")
 
-    p = sub.add_parser("setup", help="Create or update the ElevenLabs tools and agent. Safe to re-run.")
+    p = sub.add_parser("setup", help="Create or update the ElevenLabs tools and agents. Safe to re-run.")
     repo_arg(p)
 
-    p = sub.add_parser("talk", help="Run a session.")
+    p = sub.add_parser("talk", help="Run a session, then save draft records.")
     repo_arg(p)
     p.add_argument("--source", help="Source slug under sources/. Optional if there is only one.")
     p.add_argument("--unit", help="Unit id. Default: the first unit in progress, else the first not started.")
     p.add_argument("--minutes", type=int)
-    p.add_argument("--text", action="store_true", help="Text only: type instead of speaking.")
+    mode = p.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--web", action="store_true", help="Speak on ElevenLabs' talk page in your browser.")
+    mode.add_argument("--text", action="store_true", help="Type in the terminal.")
 
     p = sub.add_parser("ingest", help="Turn a finished session into a session note and record drafts.")
-    p.add_argument("--from-fixture", type=Path, metavar="DIR", required=True,
+    p.add_argument("conversation_id", nargs="?",
+                   help="Default: the conversation for the newest session not yet ingested.")
+    p.add_argument("--from-fixture", type=Path, metavar="DIR",
                    help="Read events.jsonl and conversation.json from DIR instead of the API.")
     repo_arg(p)
     return parser
@@ -40,6 +44,37 @@ def default_source(learner_repo: Path) -> str:
     return sources[0]
 
 
+def _api():
+    from .provision import Api
+    return Api(config.api_key())
+
+
+def ingest_latest(learner_repo: Path, conversation_id: str | None = None) -> int:
+    """Find the session's conversation on ElevenLabs, wait for it to be processed, and render it."""
+    log = ingest.find_log(learner_repo, conversation_id)
+    if log is None:
+        print("No session log to ingest. Pass a conversation id.", file=sys.stderr)
+        return 1
+    api, cfg = _api(), config.load(learner_repo)
+    if not conversation_id:
+        conversation_id = log.conversation_id
+    if not conversation_id:
+        agent = cfg.web_agent_id if log.session.get("mode") == "web" else cfg.agent_id
+        conversation_id = ingest.latest_conversation(api, agent, log.session.get("started", 0))
+        if not conversation_id:
+            print("ElevenLabs has no conversation for this session yet. Once the call has ended, "
+                  "run `agora-voice ingest`.", file=sys.stderr)
+            return 1
+    print(f"Fetching {conversation_id} from ElevenLabs...")
+    try:
+        r, written = ingest.ingest_conversation(learner_repo, log, ingest.fetch(api, conversation_id))
+    except ingest.IngestError as e:
+        print(e, file=sys.stderr)
+        return 1
+    print(ingest.summary(r, written, learner_repo))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "setup":
@@ -50,25 +85,39 @@ def main(argv: list[str] | None = None) -> int:
             print(e, file=sys.stderr)
             return 1
         print("\n".join(result.changes) if result.changes else "Already up to date; nothing changed.")
-        print(f"Agent: {result.agent_id}  (saved to {config.load(args.learner_repo).path})")
+        print(f"Agents: {result.agent_id} (text), {result.web_agent_id} (web)  "
+              f"(saved to {config.load(args.learner_repo).path})")
         print("Reminder: set the conversation retention period in the ElevenLabs dashboard.")
     elif args.command == "talk":
         from . import context, talk
-        if not args.text:
-            print("Voice mode comes in Phase 3; use --text for now.", file=sys.stderr)
-            return 1
+        source = args.source or default_source(args.learner_repo)
         try:
-            log = talk.run_text(args.learner_repo, args.source or default_source(args.learner_repo),
-                                args.unit, args.minutes)
+            if args.web:
+                log, url = talk.start_web(args.learner_repo, source, args.unit, args.minutes)
+                opened = talk.open_in_browser(url)
+                print(("Opened the talk page in your browser." if opened else "Open this page in your browser:")
+                      + f"\n{url}\n\nAllow the microphone, then press the call button. At the synthesis step, type in "
+                      "the page's text box.\nWhen you've ended the call, press Enter here to save the records "
+                      "(or press Ctrl+C now and run `agora-voice ingest` later).")
+                try:
+                    input()
+                except (KeyboardInterrupt, EOFError):
+                    print(f"\nSession log kept at {log.path}. Run `agora-voice ingest` after the call.")
+                    return 0
+            else:
+                log = talk.run_text(args.learner_repo, source, args.unit, args.minutes)
+                print(f"\nConversation: {log.conversation_id}")
         except (context.ContextError, RuntimeError) as e:
             print(e, file=sys.stderr)
             return 1
-        tools = [e.tool for e in log if e.tool not in ("session_start", "conversation")]
-        print(f"\nConversation: {log.conversation_id}\nEvent log: {log.path}\nTools called: {', '.join(tools) or 'none'}")
+        return ingest_latest(args.learner_repo, log.conversation_id)
     elif args.command == "ingest":
-        d = args.from_fixture
-        r, written = ingest.ingest_files(d / "events.jsonl", d / "conversation.json", args.learner_repo)
-        print(ingest.summary(r, written, args.learner_repo))
+        if args.from_fixture:
+            d = args.from_fixture
+            r, written = ingest.ingest_files(d / "events.jsonl", d / "conversation.json", args.learner_repo)
+            print(ingest.summary(r, written, args.learner_repo))
+        else:
+            return ingest_latest(args.learner_repo, args.conversation_id)
     return 0
 
 

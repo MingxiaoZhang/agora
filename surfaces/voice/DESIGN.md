@@ -23,8 +23,9 @@ Three commands:
 
 | Command | Does |
 |---|---|
-| `agora-voice setup` | Creates or updates the ElevenLabs agent and its tools from config in this repo. Idempotent. |
-| `agora-voice talk` | Builds session context from the learner repo, runs the call with mic/speaker, logs tool events. |
+| `agora-voice setup` | Creates or updates the two ElevenLabs agents (text, web) and the tools from config in this repo. Idempotent. |
+| `agora-voice talk --web` | Builds session context from the learner repo and opens ElevenLabs' talk page with it, where the learner speaks in the browser (§9a). |
+| `agora-voice talk --text` | Builds session context and runs a typed session in the terminal, with client tools logging events. |
 | `agora-voice ingest` | Fetches the finished conversation, reconciles it with the local event log, and writes draft records. |
 
 `talk` runs `ingest` automatically when the call ends; `ingest` also works standalone for re-runs.
@@ -234,14 +235,29 @@ Two entries aren't agent tool calls. The first line is `session_start`, with the
 
 The terminal shows a live transcript (both sides), so the learner can see what the system heard. Mis-hearings show up in the moment.
 
+## 9a. Voice on the talk page (`talk --web`)
+
+**Why:** speaking through the CLI needs local audio, which under WSL means PulseAudio, PortAudio and their failure modes. ElevenLabs' public talk page uses the browser's microphone instead, and needs nothing installed. This is the voice path; local audio in the CLI is optional and unbuilt.
+
+**The catch:** client tools only run in the program that started the conversation. On the talk page that's ElevenLabs' code, so nothing is recorded during the call, and records come from the transcript afterwards.
+
+**Pieces:**
+- A second agent, "Agora (web)", built from `generated/agent-prompt.web.md` (header + `agent/voice-web.md` + method + context) with no tools. Its prompt makes what it says aloud recordable: read back the commitment, say when a question goes on the research list, ask for the synthesis "in the text box", critique the typed text, and recap commitments, positions, research and the open question at the close. It can't end the call.
+- `talk --web` builds the session variables, writes a `session_start` log entry (mode `web`, start time), and opens `https://elevenlabs.io/app/talk-to?agent_id=…&vars=…`, where `vars` is the variables as base64 of ASCII-only JSON. ASCII-only keeps Chinese text intact through the page's base64 decoding. It then waits for Enter, finds the agent's newest conversation since the start time, and runs `ingest`.
+- Data collection gains four fields for this path: `commitment_kind`, `commitment_confidence`, `positions` (`topic ## learner's words ## new|moved|hardened`, separated by ` || `) and `research_questions`.
+
+**Records from a web session** (§10): the hook comes from the session log (it was prepared and passed in); the commitment, positions and research questions come from data collection; the synthesis is the learner's typed reply to the agent's request, taken verbatim from the transcript, whose turns carry `source_medium: text` or `audio`. A live run against the web agent showed extraction is usable but imperfect: it filed the typed synthesis as a position and as the agent's conclusion, until the field descriptions said not to. Everything lands as drafts for review, as always.
+
 ## 10. Ingest and reconcile (`ingest.py`, `reconcile.py`, `render.py`)
 
 **Fetch:** `GET /v1/convai/conversations/{id}`. Poll every 5 s while `status` is `processing`, giving up after 2 minutes. Use `transcript`, `analysis` (data collection results), and `metadata` (duration, cost).
 
 **Reconcile:**
 1. **Verbatim check.** For each `learner_quote`, fuzzy-match it (normalized, token-set ratio; each CJK character is a token) against user turns in the transcript, and against adjacent pairs of turns, since a quote can span a turn break. At or above the threshold (start at 0.8; tune), mark `verified`. Below it, mark `unverified` and attach the closest user turn, so the learner can fix it.
-2. **Fallback fill.** For each record type with no tool event, use the matching data-collection field if it's non-empty. Mark it `source: post-call-extraction` and always `unverified`.
-3. **Synthesis.** Always the typed text from the event log. Never extracted.
+2. **Fallback fill.** For each record type with no tool event, use the matching data-collection field if it's non-empty, marked `source: post-call-extraction`. Items that carry the learner's words (commitment, positions) get the same verbatim check as tool quotes: an extraction that matches what the learner said is verified. Items without them (converge, research) are always unverified. The hook comes from the session log when it records the prepared hook.
+3. **Synthesis.** The typed text from the event log; on a web session, the typed reply to the agent's request, from the transcript. Never extracted.
+
+A rendered session gets an `ingested` entry in its event log, and `ingest` refuses that session again, since a second pass would add its records twice.
 
 **Render (into the learner repo, as drafts):**
 - `sources/<slug>/sessions/<date>.md` per `formats/session-note.md`. Sections come from tool events. Research items from `queue_research` go under "Discussion → research to do". The surface is `voice-elevenlabs`.

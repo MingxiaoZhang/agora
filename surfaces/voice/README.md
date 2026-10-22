@@ -6,7 +6,7 @@ Spoken Agora sessions, built on ElevenLabs' voice agents (ElevenAgents) with hos
 - [`PLAN.md`](PLAN.md): phased implementation plan
 - [`SMOKE-TEST.md`](SMOKE-TEST.md): **start here.** Phase 0, a hand-run spoken session with no code
 
-**Status:** Phase 0 is done: the smoke test passed (results in [`SMOKE-TEST.md`](SMOKE-TEST.md#results)). Phases 1 and 2 are built: `setup` provisions the agent, `talk --text` runs a typed session with the tools live, and `ingest --from-fixture` renders draft records from a saved session. Voice comes in Phase 3.
+**Status:** Phase 0 is done: the smoke test passed (results in [`SMOKE-TEST.md`](SMOKE-TEST.md#results)). Phases 1 and 2 are built, and the voice path is in place: `setup` provisions the agents, `talk --web` runs a spoken session on ElevenLabs' talk page, `talk --text` runs a typed one, and each ends with draft records in your learner repo.
 
 Rules that apply to any spoken session live in `method/session.md` under "Spoken sessions", not here. This folder holds only what's specific to ElevenLabs.
 
@@ -42,11 +42,26 @@ Commands that call ElevenLabs read the API key from `ELEVENLABS_API_KEY`; it is 
 
 ## Run a session
 
-Set up the agent, then run a text session (no microphone needed) against your learner repo:
+Set up the agents once (safe to re-run; it writes their ids to `.agora/voice.toml`):
 
 ```bash
-agora-voice setup --learner-repo ~/my-reading        # creates or updates the tools and agent; safe to re-run
-agora-voice talk --text --learner-repo ~/my-reading  # type to reply; /quit ends the session
+agora-voice setup --learner-repo ~/my-reading
 ```
 
-`setup` writes the agent and tool ids to `.agora/voice.toml`. To change the model, edit `llm` or `backup_llm` there and run `setup` again. After editing anything in `agent/` or `method/`, run `scripts/build-surfaces.sh` first, since `setup` refuses a stale prompt. The unit you talk about needs an unused prepared hook in its spine.
+**By voice**, on ElevenLabs' talk page in your browser:
+
+```bash
+agora-voice talk --web --learner-repo ~/my-reading --unit transformation
+```
+
+This opens the page with the session filled in. Allow the microphone and press call. At the synthesis step, type into the page's text box. When you've ended the call, press Enter in the terminal: the conversation is fetched and draft records are written into your learner repo. Review them with `git diff`, then commit. If you skip that step, run `agora-voice ingest` later.
+
+**By typing**, in the terminal (records are captured live by the agent's tools):
+
+```bash
+agora-voice talk --text --learner-repo ~/my-reading --unit transformation
+```
+
+Type to reply; `/quit` ends the session, and the drafts are written straight after.
+
+To change the model, edit `llm` or `backup_llm` in `.agora/voice.toml` and run `setup` again. After editing anything in `agent/` or `method/`, run `scripts/build-surfaces.sh` first, since `setup` refuses a stale prompt. The unit you talk about needs an unused prepared hook in its spine.

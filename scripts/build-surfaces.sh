@@ -40,7 +40,7 @@ copy_into surfaces/chatgpt/knowledge
 } > surfaces/agents-md/AGENTS.md
 
 # Voice (ElevenLabs): one system prompt per variant.
-#   header + (tools | smoke) + method (session, discussion) + session context
+#   header + (tools | smoke | web) + method (session, discussion) + session context
 # Omitted for voice, to stay near the ~2,000-token prompt budget:
 #   - method/hooks.md: hooks are prepared ahead of time and passed in as variables
 #   - "## Agenda extraction" in discussion.md: the agenda arrives as the unit brief
@@ -73,8 +73,9 @@ build_voice() {
 mkdir -p surfaces/voice/generated
 build_voice tools surfaces/voice/generated/agent-prompt.md
 build_voice smoke surfaces/voice/generated/agent-prompt.smoke.md
+build_voice web surfaces/voice/generated/agent-prompt.web.md
 
-for p in surfaces/voice/generated/agent-prompt.md surfaces/voice/generated/agent-prompt.smoke.md; do
+for p in surfaces/voice/generated/agent-prompt*.md; do
   printf 'voice prompt %-55s ~%s tokens (chars/4), before session variables\n' "$p" $(( $(wc -c < "$p") / 4 ))
 done
 

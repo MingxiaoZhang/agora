@@ -1,0 +1,34 @@
+{
+  "conversation_id": "conv_fixture_web",
+  "agent_id": "agent_web",
+  "status": "done",
+  "transcript": [
+    {"role": "agent", "message": "Hi, I'm Agora. Ready for a quick exercise?", "source_medium": null},
+    {"role": "user", "message": "Ready.", "source_medium": "audio"},
+    {"role": "agent", "message": "A team made contract review forty percent faster. Success or failure?", "source_medium": null},
+    {"role": "user", "message": "Failure, because nothing on the financial statements moved.", "source_medium": "audio"},
+    {"role": "agent", "message": "So you're saying failure, because the financials didn't move. Right?", "source_medium": null},
+    {"role": "user", "message": "Yes.", "source_medium": "audio"},
+    {"role": "user", "message": "Actually I think speed can matter if it frees people for better work.", "source_medium": "audio"},
+    {"role": "agent", "message": "Type what you now believe in two or three sentences in the text box, then send it.", "source_medium": null},
+    {"role": "user", "message": "A faster workflow only counts if something in the business changes.", "source_medium": "text"},
+    {"role": "user", "message": "I'm not sure the financial statements are the only test.", "source_medium": "text"},
+    {"role": "agent", "message": "That's sharper than your first answer, but 'something in the business' is vague.", "source_medium": null}
+  ],
+  "metadata": {"start_time_unix_secs": 1792656000, "call_duration_secs": 900},
+  "analysis": {
+    "data_collection_results": {
+      "hook_format": {"data_collection_id": "hook_format", "value": "forced dilemma", "rationale": ""},
+      "hook_headline": {"data_collection_id": "hook_headline", "value": "A team made contract review forty percent faster. Success or failure?", "rationale": ""},
+      "commitment": {"data_collection_id": "commitment", "value": "Failure, because nothing on the financial statements moved.", "rationale": ""},
+      "commitment_kind": {"data_collection_id": "commitment_kind", "value": "choice", "rationale": ""},
+      "positions": {"data_collection_id": "positions", "value": "what counts as AI success ## speed can matter if it frees people for better work ## moved || measuring value ## only the financial statements show real value ## new", "rationale": ""},
+      "research_questions": {"data_collection_id": "research_questions", "value": "How often do AI projects report financial impact within a year?", "rationale": ""},
+      "core_idea": {"data_collection_id": "core_idea", "value": "Speed is only success if the business changes.", "rationale": ""},
+      "conclusion": {"data_collection_id": "conclusion", "value": "Financial statements are one test, not the only one.", "rationale": ""},
+      "open_questions": {"data_collection_id": "open_questions", "value": "What non-financial evidence would convince you?", "rationale": ""},
+      "hints_used": {"data_collection_id": "hints_used", "value": 0, "rationale": ""},
+      "converged": {"data_collection_id": "converged", "value": true, "rationale": ""}
+    }
+  }
+}

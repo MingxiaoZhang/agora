@@ -22,7 +22,8 @@ API_KEY_ENV = "ELEVENLABS_API_KEY"
 @dataclass
 class Config:
     learner_repo: Path
-    agent_id: str | None = None
+    agent_id: str | None = None          # CLI agent, with client tools (talk --text)
+    web_agent_id: str | None = None      # web agent, no tools (talk --web, ElevenLabs' talk page)
     voice_id: str | None = None
     llm: str = "claude-sonnet-5-5"
     reasoning_effort: str = "low"
