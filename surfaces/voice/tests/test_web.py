@@ -173,3 +173,10 @@ def test_missing_synthesis_is_asked_at_ingest(learner_repo, monkeypatch, capsys)
     assert "Synthesis: written after the call, not critiqued." in capsys.readouterr().out
     note = (learner_repo / "sources" / SOURCE / "sessions" / "2026-10-21.md").read_text(encoding="utf-8")
     assert "Typed after the call." in note
+
+
+def test_ingest_says_when_everything_is_done(learner_repo, monkeypatch, capsys):
+    log = web_log(learner_repo)
+    log.append("ingested", session_note="sources/x/sessions/2026-10-21.md")
+    assert cli.main(["ingest", "--learner-repo", str(learner_repo)]) == 1
+    assert "Nothing new to ingest: all 1 session(s)" in capsys.readouterr().err
