@@ -63,9 +63,9 @@ def ingest_latest(learner_repo: Path, session: str | None = None) -> int:
             what = f"session {session}" if session else "any session"
             print(f"No log for {what} in {where}. Is --learner-repo right?", file=sys.stderr)
         else:
-            done = logs[0].events("ingested")
-            into = f" (the newest went into {done[-1].params.get('session_note')})" if done else ""
-            print(f"Nothing new to ingest: all {len(logs)} session(s) in {where} are done{into}.", file=sys.stderr)
+            into = logs[0].events("ingested")[-1].params.get("session_note")
+            print(f"Nothing new to ingest: all {len(logs)} session(s) in {where} are done "
+                  f"(the newest went into {into}).", file=sys.stderr)
         return 1
     api, cfg = _api(), config.load(learner_repo)
     if not conversation_id:

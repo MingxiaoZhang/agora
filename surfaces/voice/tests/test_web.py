@@ -180,3 +180,13 @@ def test_ingest_says_when_everything_is_done(learner_repo, monkeypatch, capsys):
     log.append("ingested", session_note="sources/x/sessions/2026-10-21.md")
     assert cli.main(["ingest", "--learner-repo", str(learner_repo)]) == 1
     assert "Nothing new to ingest: all 1 session(s)" in capsys.readouterr().err
+
+
+def test_default_is_the_newest_session_not_ingested(learner_repo):
+    older = EventLog(learner_repo / ".agora" / "voice-sessions" / "20261020T000000Z.jsonl")
+    older.append("session_start", source=SOURCE, unit="u")
+    older.set_conversation_id("conv_older")          # has a conversation, never ingested
+    newer = EventLog(learner_repo / ".agora" / "voice-sessions" / "20261021T000000Z.jsonl")
+    newer.append("session_start", source=SOURCE, unit="u")
+    newer.append("ingested", session_note="x.md")     # done, though it has no conversation id
+    assert ingest.find_log(learner_repo, None).path == older.path

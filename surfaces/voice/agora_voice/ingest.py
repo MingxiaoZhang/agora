@@ -55,7 +55,7 @@ def session_logs(learner_repo: Path) -> list[EventLog]:
 
 
 def find_log(learner_repo: Path, conversation_id: str | None, name: str | None = None) -> EventLog | None:
-    """The log with this name, or for this conversation, else the newest log not yet tied to one."""
+    """The log with this name, or for this conversation, else the newest log not yet ingested."""
     logs = session_logs(learner_repo)
     if name:
         return next((log for log in logs if log.path.stem == name), None)
@@ -63,7 +63,7 @@ def find_log(learner_repo: Path, conversation_id: str | None, name: str | None =
         for log in logs:
             if log.conversation_id == conversation_id:
                 return log
-    return next((log for log in logs if not log.conversation_id), None)
+    return next((log for log in logs if not log.events("ingested")), None)
 
 
 def has_synthesis(log: EventLog, conversation: dict) -> bool:
