@@ -295,6 +295,11 @@ def mark_hook_used(repo: Path, r: Reconciled, date: str, out: Written) -> None:
 
 # --- session note ----------------------------------------------------------------
 
+def status_lines(r: Reconciled) -> list[str]:
+    stopped = r.stopped_at()
+    return [f"status: incomplete", f"stopped_at: {stopped}"] if stopped else ["status: complete"]
+
+
 def session_note(r: Reconciled, date: str, updated: list[str], open_question: str | None) -> str:
     s = r.session
     out = [
@@ -304,6 +309,7 @@ def session_note(r: Reconciled, date: str, updated: list[str], open_question: st
         f"unit: {s.get('unit', '')}",
         f"length: {s.get('session_minutes', 'open')}",
         f"surface: {SURFACE}",
+        *status_lines(r),
         "---",
         "",
         "## Hook",

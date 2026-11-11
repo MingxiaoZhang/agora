@@ -88,6 +88,9 @@ class Item:
         return "the quote doesn't match anything you said in the transcript."
 
 
+PHASES = ("spark", "debrief", "discuss", "converge", "synthesize")
+
+
 @dataclass
 class Synthesis:
     text: str
@@ -108,6 +111,23 @@ class Reconciled:
 
     def unverified(self) -> list[Item]:
         return [i for i in self.items if not i.verified]
+
+    def stopped_at(self) -> str | None:
+        """The first phase that didn't happen, or None if the session is complete
+        (formats/session-note.md). Phases a continued session carried over count as done."""
+        reached = -1
+        if self.of("record_commitment"):
+            reached = 0
+        if self.of("record_position"):
+            reached = 2   # a position means the debrief and discussion happened
+        if self.of("record_converge"):
+            reached = 3
+        if self.synthesis and self.synthesis.source != "post-call":
+            reached = 4   # written and critiqued in the session
+        carried = self.session.get("resume_from")
+        if carried in PHASES:
+            reached = max(reached, PHASES.index(carried) - 1)
+        return PHASES[reached + 1] if reached + 1 < len(PHASES) else None
 
 
 def user_turns(conversation: dict) -> list[str]:

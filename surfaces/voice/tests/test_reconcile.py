@@ -71,3 +71,22 @@ def test_duplicate_events_count_once(tmp_path):
     for _ in range(2):
         log.append("record_hook", format="predict-and-commit", headline="h")
     assert len(reconcile(log, {"transcript": []}).of("record_hook")) == 1
+
+
+def test_stopped_at(tmp_path):
+    from agora_voice.reconcile import Reconciled, Item, Synthesis
+    r = Reconciled(session={})
+    assert r.stopped_at() == "spark"
+    r.items.append(Item("record_commitment", {}))
+    assert r.stopped_at() == "debrief"
+    r.items.append(Item("record_position", {}))
+    assert r.stopped_at() == "converge"
+    r.items.append(Item("record_converge", {}))
+    assert r.stopped_at() == "synthesize"
+    r.synthesis = Synthesis("typed after", "post-call")
+    assert r.stopped_at() == "synthesize"   # not critiqued
+    r.synthesis = Synthesis("typed", "typed-in-call")
+    assert r.stopped_at() is None
+    # A continued session starts with the earlier phases done.
+    assert Reconciled(session={"resume_from": "synthesize"}).stopped_at() == "synthesize"
+    assert Reconciled(session={"resume_from": "converge"}, synthesis=Synthesis("x", "in-call")).stopped_at() is None
