@@ -17,6 +17,7 @@ BRIEF_WORDS = 500
 AUTHOR_CONTEXT_WORDS = 100
 LEARNER_CONTEXT_WORDS = 200
 POSITIONS_WORDS = 300
+RESUME_WORDS = 350
 MAX_POSITIONS = 5
 RECENT_HOOK_FORMATS = 3
 DEFAULT_MINUTES = 25
@@ -24,6 +25,11 @@ DEFAULT_MINUTES = 25
 NO_POSITIONS = "None recorded for this book yet."
 NO_OPEN_QUESTION = "None. This is the first session on this unit."
 NO_LEARNER_CONTEXT = "Nothing shared yet."
+NO_RESUME = "None. This is a new session."
+HOOK_ALREADY_DONE = "Done in the earlier session. Do not present it again."
+# How the opening line names the phase an interrupted session stopped before.
+PHASE_WORDS = {"spark": "you committed to the exercise", "debrief": "the debrief", "discuss": "the discussion",
+               "converge": "we pulled it together", "synthesize": "your synthesis"}
 # The stock line in templates/learner-repo/learner/context.md, which isn't the learner's own words.
 TEMPLATE_CONTEXT_HINT = "What I choose to share so hooks can be personal"
 
@@ -66,6 +72,8 @@ class Session:
     source: str
     unit: str
     hook_headline: str
+    resume_from: str | None = None      # phase an interrupted session stopped at
+    continues: str | None = None        # date of the session being continued
 
     def sizes(self) -> dict[str, int]:
         return {k: words(str(v)) for k, v in self.variables.items()}
@@ -195,20 +203,108 @@ def spoken_name(src: dict) -> str:
     return f"{author}'s {kind}" if author else f"the {kind}"
 
 
+@dataclass
+class Note:
+    path: Path
+    front: dict
+    sections: dict[str, str]
+
+    @property
+    def date(self) -> str:
+        return str(self.front.get("date", self.path.stem))
+
+
+def session_notes(learner_repo: Path, source: str) -> list[Note]:
+    """Session notes for a source, oldest first."""
+    d = Path(learner_repo) / "sources" / source / "sessions"
+    notes = []
+    for path in sorted(d.glob("*.md")) if d.exists() else []:
+        text = path.read_text(encoding="utf-8")
+        if not text.startswith("---"):
+            continue
+        _, front, body = text.split("---", 2)
+        parts = re.split(r"^## +(.+)$", body, flags=re.M)
+        sections = {parts[i].strip(): parts[i + 1].strip() for i in range(1, len(parts) - 1, 2)}
+        notes.append(Note(path, yaml.safe_load(front) or {}, sections))
+    return notes
+
+
+def interrupted(learner_repo: Path, source: str, unit_id: str | None = None) -> Note | None:
+    """The latest session on the unit (or on any unit) if it ended early."""
+    latest: dict[str, Note] = {}
+    for note in session_notes(learner_repo, source):
+        latest[str(note.front.get("unit"))] = note
+    candidates = [latest[unit_id]] if unit_id in latest else ([] if unit_id else list(latest.values()))
+    candidates = [n for n in candidates if n.front.get("status") == "incomplete" and n.front.get("stopped_at")]
+    return max(candidates, key=lambda n: n.path.name) if candidates else None
+
+
+def _section_text(text: str) -> str:
+    text = re.sub(r"<!--.*?-->", "", text or "", flags=re.S)
+    lines = [ln.strip().lstrip("-* ").strip() for ln in text.splitlines()]
+    return " ".join(ln for ln in lines if ln and not (ln.startswith("_") and ln.endswith("_")))
+
+
+def _headline(note: Note) -> str:
+    m = re.search(r'Headline:\s*"?(.+?)"?\s*$', note.sections.get("Hook", ""), re.M)
+    return m.group(1) if m else ""
+
+
+def resume_brief(note: Note, learner_repo: Path, source: str) -> str:
+    """What the agent needs to continue an interrupted session, without the transcript."""
+    phase = note.front.get("stopped_at")
+    items = [f"The last session on this unit ({note.date}) ended early: the {phase} step never happened."]
+    if _headline(note):
+        items.append(f"Its hook, already done: {_headline(note)}")
+    for title in ("Commitment", "Debrief", "Where it stopped"):
+        text = _section_text(note.sections.get(title, ""))
+        if text:
+            items.append(f"{title}: {text}")
+    for p in _load_list(Path(learner_repo) / "learner" / "positions.yaml"):
+        if any(str((h.get("origin") or {}).get("session")) == note.date and (h.get("origin") or {}).get("source") == source
+               for h in p.get("history") or []):
+            items.append(f"Their position on {_clean(p.get('topic'))}, as it ended: {_sentence(p.get('current'))}")
+    converge = _section_text(note.sections.get("Converge", ""))
+    if converge:
+        items.append(f"Converge so far: {converge}")
+    synthesis = _section_text(note.sections.get("Synthesis", ""))
+    if phase == "synthesize" and synthesis:
+        items.append(f"They wrote this synthesis after the session; critique it: {synthesis}")
+    items.append("Continue from there, following the method's Resume step. Begin your first reply with a "
+                 "one-sentence recap of where they had got to, before any question.")
+    return fit(items[:-1], RESUME_WORDS - words(items[-1])) + " " + items[-1]
+
+
 def opening_line(open_question: str | None, unit_title: str, source_name: str) -> str:
     if open_question:
         return f"Hi, I'm Agora; last time you left with a question, {open_question.rstrip('?')}? Has your thinking on it changed?"
     return f"Hi, I'm Agora; today we're starting {unit_title} from {source_name}, with a quick exercise before any reading, ready?"
 
 
-def build(learner_repo: Path, source: str, unit_id: str | None = None, minutes: int | None = None) -> Session:
+def resume_opening(note: Note, unit_title: str) -> str:
+    phase = PHASE_WORDS.get(note.front.get("stopped_at"), "the end")
+    return f"Hi, I'm Agora; last time on {unit_title} we stopped before {phase}. Before we pick it up, has your thinking changed since?"
+
+
+def build(learner_repo: Path, source: str, unit_id: str | None = None, minutes: int | None = None,
+          fresh: bool = False) -> Session:
+    """Variables for a session. If the unit's last session ended early (or, with no unit
+    given, any unit's), continue it rather than start over, unless `fresh`."""
     learner_repo = Path(learner_repo)
     spine = load_spine(learner_repo, source)
     src = spine.get("source") or {}
-    unit = select_unit(spine, unit_id)
-    hook = select_hook(unit, recent_hook_formats(learner_repo))
+    note = None if fresh else interrupted(learner_repo, source, unit_id)
+    unit = select_unit(spine, str(note.front.get("unit")) if note else unit_id)
     question = newest_open_question(learner_repo)
     name = spoken_name(src)
+    if note:
+        headline = _headline(note)
+        prepared = next((h for h in unit.get("hooks") or [] if _clean(h.get("headline")) == headline), {})
+        fmt = re.search(r"Format:\s*(.*)", note.sections.get("Hook", ""))
+        hook = {"format": fmt.group(1).strip() if fmt else "", "headline": headline,
+                "activity": HOOK_ALREADY_DONE, "debrief_angle": prepared.get("debrief_angle", "")}
+    else:
+        hook = select_hook(unit, recent_hook_formats(learner_repo))
 
     variables = {
         "source_spoken_name": name,
@@ -225,7 +321,12 @@ def build(learner_repo: Path, source: str, unit_id: str | None = None, minutes: 
         "recent_positions": recent_positions(learner_repo, source),
         "open_question": question or NO_OPEN_QUESTION,
         "session_minutes": minutes or DEFAULT_MINUTES,
-        "opening_line": opening_line(question, _clean(unit.get("title")), name),
+        "opening_line": (resume_opening(note, _clean(unit.get("title"))) if note
+                         else opening_line(question, _clean(unit.get("title")), name)),
+        "resume_brief": resume_brief(note, learner_repo, source) if note else NO_RESUME,
     }
+    if note:
+        return Session(variables=variables, source=source, unit=str(unit.get("id")), hook_headline="",
+                       resume_from=str(note.front["stopped_at"]), continues=note.date)
     return Session(variables=variables, source=source, unit=str(unit.get("id")),
                    hook_headline=variables["hook_headline"])

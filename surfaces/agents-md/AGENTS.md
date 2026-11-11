@@ -40,6 +40,8 @@ Resume → Spark → Debrief → Read → Discuss → Converge → Synthesize �
 #### Resume
 If there are earlier records, open with one of the learner's open questions or past positions and ask whether it has changed. Skip on a first session.
 
+If the last session on this unit ended early (its note says `incomplete`), continue it instead of starting over. Recap in a sentence or two where it stopped: what the learner committed to, where their position had got to, and the question left open. Ask whether their thinking has changed since. Then pick up at the phase that didn't happen, without repeating the hook. If only the synthesis is missing, ask for it; if they wrote one after the session ended, critique that.
+
 On a first session ever, ask three things: what they hope to get from the source, what they currently believe about its topic, and how long a session should be (default 25 minutes; a 10-minute mode shortens Debrief and Discuss).
 
 #### Spark — the hook
@@ -447,6 +449,7 @@ length: 10 | 25 | open
 surface: string            # e.g. claude-skill, chatgpt, voice
 status: complete | incomplete
 stopped_at: spark | debrief | discuss | converge | synthesize   # only when incomplete
+continues: YYYY-MM-DD       # only when this session continued an incomplete one
 ---
 
 ### Hook

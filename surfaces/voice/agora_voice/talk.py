@@ -96,10 +96,11 @@ def strip_fillers(text: str, phrases: list[str]) -> str:
 
 
 def new_log(learner_repo: Path, session: context.Session, mode: str) -> EventLog:
+    extra = {"resume_from": session.resume_from, "continues": session.continues} if session.continues else {}
     return EventLog.new(learner_repo, source=session.source, unit=session.unit, hook_headline=session.hook_headline,
-                        hook_format=session.variables["hook_format"],
+                        hook_format=session.variables["hook_format"] if session.hook_headline else "",
                         session_minutes=session.variables["session_minutes"], date=date.today().isoformat(),
-                        mode=mode, started=int(time.time()))
+                        mode=mode, started=int(time.time()), **extra)
 
 
 TALK_PAGE = "https://elevenlabs.io/app/talk-to"
@@ -122,12 +123,13 @@ def open_in_browser(url: str) -> bool:
     return webbrowser.open(url)
 
 
-def start_web(learner_repo: Path, source: str, unit: str | None, minutes: int | None) -> tuple[EventLog, str]:
+def start_web(learner_repo: Path, source: str, unit: str | None, minutes: int | None,
+              fresh: bool = False) -> tuple[EventLog, str]:
     """Log the session's start and return the talk page URL for it."""
     cfg = config_mod.load(learner_repo)
     if not cfg.web_agent_id:
         raise RuntimeError("No web agent yet. Run `agora-voice setup` first.")
-    session = context.build(learner_repo, source, unit, minutes)
+    session = context.build(learner_repo, source, unit, minutes, fresh)
     return new_log(learner_repo, session, "web"), talk_url(cfg.web_agent_id, session.variables)
 
 
@@ -136,12 +138,13 @@ def user_id(learner_repo: Path) -> str:
 
 
 def run_text(learner_repo: Path, source: str, unit: str | None, minutes: int | None,
-             terminal: Terminal | None = None, conversation_factory: Callable | None = None) -> EventLog:
+             terminal: Terminal | None = None, conversation_factory: Callable | None = None,
+             fresh: bool = False) -> EventLog:
     """Run one text-only session and return its event log."""
     cfg = config_mod.load(learner_repo)
     if not cfg.agent_id:
         raise RuntimeError("No agent yet. Run `agora-voice setup` first.")
-    session = context.build(learner_repo, source, unit, minutes)
+    session = context.build(learner_repo, source, unit, minutes, fresh)
     log = new_log(learner_repo, session, "text")
     term = terminal or Terminal()
     handlers = Handlers(log, term.read_synthesis)
@@ -157,7 +160,8 @@ def run_text(learner_repo: Path, source: str, unit: str | None, minutes: int | N
         cfg, session.variables, handlers.handlers(), user_id(learner_repo),
         on_agent=show, on_end=ended.set,
     )
-    term.say(f"Text session on {session.unit}. Type to reply; /quit ends the session (the agent never hangs up).")
+    resuming = f", continuing {session.continues}" if session.continues else ""
+    term.say(f"Text session on {session.unit}{resuming}. Type to reply; /quit ends the session (the agent never hangs up).")
     conv.start_session()
     try:
         while not ended.is_set():

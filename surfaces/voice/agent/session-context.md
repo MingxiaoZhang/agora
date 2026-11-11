@@ -8,6 +8,10 @@
 - Their recent positions: {{recent_positions}}
 - Open question to resume with: {{open_question}}
 
+## Continuing an earlier session
+
+{{resume_brief}}
+
 ## The hook (prepared in advance)
 
 - Format: {{hook_format}}

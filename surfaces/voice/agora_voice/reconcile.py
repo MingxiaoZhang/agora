@@ -248,7 +248,7 @@ def _fallback(result: Reconciled, turns: list[str], threshold: float) -> None:
         item = Item(tool, params, source="post-call-extraction", verified=False)
         result.items.append(_check(item, turns, threshold))
 
-    if not result.of("record_hook"):
+    if not result.of("record_hook") and not result.session.get("continues"):
         if result.session.get("hook_headline"):
             # The hook was prepared and passed in, so the session log already knows it.
             result.items.append(Item("record_hook", {"format": result.session.get("hook_format") or data.get("hook_format", ""),

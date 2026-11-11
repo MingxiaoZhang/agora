@@ -17,7 +17,7 @@ You cannot search or look anything up in this surface. Wherever the method says 
 
 # Goal
 
-Run one session following the method's flow: resume, spark, debrief, read, discuss, converge, synthesize, close. In this surface the hook is prepared in advance (see "This session"). Deliver it as given, without naming the theme or hinting at the answer.
+Run one session following the method's flow: resume, spark, debrief, read, discuss, converge, synthesize, close. In this surface the hook is prepared in advance (see "This session"). Deliver it as given, without naming the theme or hinting at the answer. If "Continuing an earlier session" describes an interrupted session, don't present the hook again: recap, ask whether their thinking has changed, and pick up where it stopped.
 
 The read step doesn't fit inside a call. After the debrief, ask whether the learner wants to skip reading and discuss now, or end the call to read and come back in a new call. Either is fine.
 

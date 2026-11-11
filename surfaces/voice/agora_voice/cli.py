@@ -26,6 +26,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--source", help="Source slug under sources/. Optional if there is only one.")
     p.add_argument("--unit", help="Unit id. Default: the first unit in progress, else the first not started.")
     p.add_argument("--minutes", type=int)
+    p.add_argument("--fresh", action="store_true",
+                   help="Start a new session even if the last one on this unit ended early (default: continue it).")
     mode = p.add_mutually_exclusive_group(required=True)
     mode.add_argument("--web", action="store_true", help="Speak on ElevenLabs' talk page in your browser.")
     mode.add_argument("--text", action="store_true", help="Type in the terminal.")
@@ -129,7 +131,10 @@ def main(argv: list[str] | None = None) -> int:
         source = args.source or default_source(args.learner_repo)
         try:
             if args.web:
-                log, url = talk.start_web(args.learner_repo, source, args.unit, args.minutes)
+                log, url = talk.start_web(args.learner_repo, source, args.unit, args.minutes, args.fresh)
+                if log.session.get("continues"):
+                    print(f"Continuing the {log.session['continues']} session on {log.session['unit']}, "
+                          f"which stopped at {log.session['resume_from']}. Use --fresh to start over.")
                 opened = talk.open_in_browser(url)
                 print(("Opened the talk page in your browser." if opened else "Open this page in your browser:")
                       + f"\n{url}\n\nAllow the microphone, then press the call button. At the synthesis step, type in "
@@ -142,7 +147,7 @@ def main(argv: list[str] | None = None) -> int:
                           f"--learner-repo {args.learner_repo}")
                     return 0
             else:
-                log = talk.run_text(args.learner_repo, source, args.unit, args.minutes)
+                log = talk.run_text(args.learner_repo, source, args.unit, args.minutes, fresh=args.fresh)
                 print(f"\nConversation: {log.conversation_id}")
         except (context.ContextError, RuntimeError) as e:
             print(e, file=sys.stderr)

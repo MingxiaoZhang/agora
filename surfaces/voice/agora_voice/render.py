@@ -246,7 +246,7 @@ def render_signals(repo: Path, r: Reconciled, date: str, out: Written) -> None:
         "session": _day(date),
         "source": r.session.get("source", ""),
         "hook_format": hooks[0].params.get("format", "") if hooks else "",
-        "hook_skipped": not hooks,
+        "hook_skipped": not hooks and not r.session.get("continues"),
         "hints_used": int(r.data.get("hints_used") or 0),
         "answer_requested_before_attempt": int(r.data.get("answer_requested_before_attempt") or 0),
         "converged": bool(r.of("record_converge")),
@@ -297,7 +297,10 @@ def mark_hook_used(repo: Path, r: Reconciled, date: str, out: Written) -> None:
 
 def status_lines(r: Reconciled) -> list[str]:
     stopped = r.stopped_at()
-    return [f"status: incomplete", f"stopped_at: {stopped}"] if stopped else ["status: complete"]
+    lines = ["status: incomplete", f"stopped_at: {stopped}"] if stopped else ["status: complete"]
+    if r.session.get("continues"):
+        lines.append(f"continues: {r.session['continues']}")
+    return lines
 
 
 def session_note(r: Reconciled, date: str, updated: list[str], open_question: str | None) -> str:
@@ -320,7 +323,9 @@ def session_note(r: Reconciled, date: str, updated: list[str], open_question: st
         out.append(f"- Headline: \"{p.get('headline', '')}\"")
         if p.get("rejected"):
             out.append(f"- Rejected candidates: {p['rejected']}")
-    if not r.of("record_hook"):
+    if r.session.get("continues"):
+        out.append(f"_Continued from {r.session['continues']}; the hook was done then._")
+    elif not r.of("record_hook"):
         out.append("_No hook recorded._")
 
     out += ["", "## Commitment"]
