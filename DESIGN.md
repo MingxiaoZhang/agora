@@ -91,6 +91,7 @@ Turns a source into the structure sessions follow.
   - `author_context`: incentives, publication date, known critiques
 - **Modes:** book-first (keep the author's chapter order) or idea-first (re-order by general idea, possibly merging several books).
 - Keeps the "structure a book provides" while letting discussion leave the book.
+- **Plan:** [`prepare/PLAN.md`](prepare/PLAN.md). Books are prepared once by a curator and reviewed by a person, not by each learner, since a spine is the agent's private agenda. Each unit is sorted into judgment targets (protected) and an information layer (given freely), using the lookup test.
 
 ### 4.2 Hook Engine
 Generates and gates the opening activity.
@@ -240,10 +241,12 @@ The protocol is the product, so test it like code.
 | v0 (now) | Write `method/` and `formats/` from the current `SKILL.md`. Ship two surfaces: a Claude skill and a ChatGPT version. Records are hand-kept files. Use it on 《AI未来已来》 and one non-book source. |
 | v1 | Whatever hurt most in v0. Likely: a small script to render the "book," and a separate hook-gate prompt. |
 | v2 | New surfaces: voice sessions, diagrams of arguments and position maps. |
-| v3 | Software only where needed: spine building from EPUB/PDF, an MCP server for records, evals in CI. |
+| v3 | Software only where needed: spine building from EPUB/PDF ([`prepare/PLAN.md`](prepare/PLAN.md)), an MCP server for records, evals in CI. |
 | Later | Multi-book idea graph, delayed recall checks, shared reading groups. |
 
 ## 9. Open decisions
+
+0. **Personal tool or product.** Personal for now, built for one learner and curator. The design keeps expansion cheap (plain files, spines separate from learner records, core separate from surfaces) without building for it. The signal to expand is sustained personal use after the novelty wears off; see [`prepare/PLAN.md`](prepare/PLAN.md#direction).
 
 1. **Name.** Agora, after the Athenian public square where people met to argue ideas. Check GitHub and npm for conflicts before publishing.
 2. **Whether to build software at all, and when.** Decide per pain point after v0. If a server is built, TypeScript fits MCP tooling best.
