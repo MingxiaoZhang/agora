@@ -246,7 +246,7 @@ The protocol is the product, so test it like code.
 
 ## 9. Open decisions
 
-0. **Personal tool or product.** Personal for now, built for one learner and curator. The design keeps expansion cheap (plain files, spines separate from learner records, core separate from surfaces) without building for it. The signal to expand is sustained personal use after the novelty wears off; see [`prepare/PLAN.md`](prepare/PLAN.md#direction).
+0. **Personal tool or product.** A product, starting small: a handful of early users and a few reviewed public-domain books. The design keeps growth cheap (plain files, spines separate from learner records, core separate from surfaces) and builds servers or accounts only when users call for them. Spines are AI-drafted and checked in layers, with a person signing off on judgment targets and hooks; see [`prepare/PLAN.md`](prepare/PLAN.md#trust-and-review).
 
 1. **Name.** Agora, after the Athenian public square where people met to argue ideas. Check GitHub and npm for conflicts before publishing.
 2. **Whether to build software at all, and when.** Decide per pain point after v0. If a server is built, TypeScript fits MCP tooling best.
