@@ -13,6 +13,7 @@ length: 10 | 25 | open
 surface: string            # e.g. claude-skill, chatgpt, voice
 status: complete | incomplete
 stopped_at: spark | debrief | discuss | converge | synthesize   # only when incomplete
+continues: YYYY-MM-DD       # only when this session continued an incomplete one
 ---
 
 ## Hook
