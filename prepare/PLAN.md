@@ -88,6 +88,8 @@ Critique search, author incentives, events since publication, and consensus labe
 
 ### Phase 5 — Hooks, spine writer, checks
 
+**Started early:** hook preparation for nonfiction has a manual procedure and prompt ([`hooks/PROCEDURE.md`](hooks/PROCEDURE.md), [`hooks/prompt.md`](hooks/prompt.md)), with a first trial on two books in [`hooks/trials/`](hooks/trials/). Automating it remains part of this phase.
+
 Hook generation with the quality gate, `spine.yaml` output validated against `formats/`, and the copy check (reject runs of source text above a threshold, tuned during the phase).
 
 **Done when** a full spine for 《AI未来已来》 passes validation and the copy check, and the curator's review edits fewer than a third of the judgment targets.

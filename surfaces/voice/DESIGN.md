@@ -179,6 +179,8 @@ Dynamic variables (all strings; values must be strings, numbers, or booleans):
 | `session_minutes` | flag or 25 | — |
 | `opening_line` | resume question if `open_question` is set, else a one-line greeting naming the unit | 1 sentence |
 
+**Scene hooks** (`method/hooks.md`, "Scenes") have their roles and decision folded into `hook_activity`, which the agent runs, and how each option plays out plus what the source says folded into the private `hook_debrief_angle` (`scene_parts` in `context.py`).
+
 **Hook selection.** Pick the first unused prepared hook whose format isn't among the last three in `learner/signals.yaml`, falling back to any unused hook. If the unit has none, stop with a message: prepare hooks first, in another surface (e.g. the Claude skill: "prepare two hooks for unit X") or by hand. `ingest` sets `used` on the hook afterwards.
 
 Truncate by dropping whole items, never mid-sentence. Log the final variable sizes in verbose mode. Never include `secret__` variables; none are needed.

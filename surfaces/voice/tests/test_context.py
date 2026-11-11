@@ -35,6 +35,24 @@ def test_default_unit_needs_an_unused_hook(learner_repo):
         context.build(learner_repo, SOURCE)
 
 
+def test_scene_hook_folds_roles_into_activity_and_keeps_outcomes_private(learner_repo):
+    v = context.build(learner_repo, SOURCE, "ch06-07").variables
+    assert v["hook_format"] == "scene"
+    assert v["hook_activity"].startswith("You're the CEO of a 300-person software company")
+    for role in ("As the IT lead:", "As the head of people:", "As an engineering manager:"):
+        assert role in v["hook_activity"]
+    assert "The decision: Roll it out as is" in v["hook_activity"]
+    # How each option plays out, and what the source says, stay out of the activity.
+    assert "senior engineer resigns" not in v["hook_activity"]
+    assert "how each option plays out (private): As is:" in v["hook_debrief_angle"]
+    assert "what the source says (private): The book recommends" in v["hook_debrief_angle"]
+
+
+def test_plain_hook_is_unchanged_by_scene_folding():
+    hook = {"activity": "Decide.", "debrief_angle": "Ask why."}
+    assert context.scene_parts(hook) == ("Decide.", "Ask why.")
+
+
 def test_hook_skips_recent_formats():
     unit = {"hooks": [{"format": "forced dilemma", "used": "2026-10-01"},
                       {"format": "predict-and-commit"}, {"format": "find the flaw"}]}
