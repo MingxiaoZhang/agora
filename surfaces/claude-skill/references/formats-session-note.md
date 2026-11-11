@@ -42,6 +42,9 @@ The assumption that surfaced, and the tension named.
 ## Synthesis
 The learner's own two or three sentences, verbatim.
 
+## Where it stopped
+Only when incomplete: the last question left unanswered, and where the discussion had got to.
+
 ## Records updated
 - positions: pos-0001 (moved)
 - bets: bet-0002
@@ -51,4 +54,4 @@ The learner's own two or three sentences, verbatim.
 
 Sections may be empty when a phase was skipped. The `Synthesis` section is the learner's text only.
 
-A session is `complete` once the learner's synthesis was written and critiqued. Otherwise it is `incomplete`, and `stopped_at` names the first phase that didn't happen: no commitment to the hook (`spark`), no assumption surfaced (`debrief`), no position taken (`discuss`), no core idea stated (`converge`), or no critiqued synthesis (`synthesize`). A synthesis written after the session ended counts as `synthesize`, since it wasn't critiqued. Read is optional and never blocks completion. The next session on that unit continues an incomplete one (see `../method/session.md`, Resume).
+The `Where it stopped` section is what the next session picks up from. A session is `complete` once the learner's synthesis was written and critiqued. Otherwise it is `incomplete`, and `stopped_at` names the first phase that didn't happen: no commitment to the hook (`spark`), no assumption surfaced (`debrief`), no position taken (`discuss`), no core idea stated (`converge`), or no critiqued synthesis (`synthesize`). A synthesis written after the session ended counts as `synthesize`, since it wasn't critiqued. Read is optional and never blocks completion. The next session on that unit continues an incomplete one (see `../method/session.md`, Resume).

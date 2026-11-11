@@ -64,4 +64,6 @@ agora-voice talk --text --learner-repo ~/my-reading --unit transformation
 
 Type to reply; `/quit` ends the session, and the drafts are written straight after.
 
+If a session ends early, the next `talk` on that unit continues it: no new hook, a short recap, and it picks up where it stopped. Add `--fresh` to start over instead.
+
 To change the model, edit `llm` or `backup_llm` in `.agora/voice.toml` and run `setup` again. After editing anything in `agent/` or `method/`, run `scripts/build-surfaces.sh` first, since `setup` refuses a stale prompt. The unit you talk about needs an unused prepared hook in its spine.

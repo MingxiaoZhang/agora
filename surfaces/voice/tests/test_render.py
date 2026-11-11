@@ -30,7 +30,8 @@ def test_session_note_follows_format(learner_repo, session_dir):
     template = fmt.split("```markdown", 1)[1].split("```", 1)[0]
     note = (learner_repo / NOTE).read_text(encoding="utf-8")
     heads = lambda text: re.findall(r"^## .+$", text, re.M)
-    assert heads(note) == heads(template)
+    assert [h for h in heads(template) if h in heads(note)] == heads(note)
+    assert set(heads(template)) - set(heads(note)) <= {"## Where it stopped"}  # only when incomplete
     keys = lambda text: re.findall(r"^(\w+):", text.split("---")[1], re.M)
     assert [k for k in keys(template) if k in keys(note)] == keys(note)  # optional keys may be absent
 

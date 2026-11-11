@@ -105,6 +105,7 @@ class Reconciled:
     data: dict[str, Any] = field(default_factory=dict)   # data-collection values
     metadata: dict[str, Any] = field(default_factory=dict)
     conversation_id: str | None = None
+    left_on: str | None = None          # the agent's last question, verbatim, if its final turn asked one
 
     def of(self, tool: str) -> list[Item]:
         return [i for i in self.items if i.tool == tool]
@@ -184,12 +185,26 @@ def reconcile(log: EventLog, conversation: dict, threshold: float = THRESHOLD) -
             params["open_questions"] = _split_questions(params.get("open_questions"))
         result.items.append(_check(Item(event.tool, params), turns, threshold))
 
+    result.left_on = last_question(conversation)
     _fallback(result, turns, threshold)
     if result.synthesis is None:
         text = typed_synthesis(conversation)
         if text:
             result.synthesis = Synthesis(text, "typed-in-call")
     return result
+
+
+_AUDIO_TAG = re.compile(r"\[[a-z][a-z ]{0,20}\]\s*")
+
+
+def last_question(conversation: dict) -> str | None:
+    """The final question in the agent's final turn, without audio tags like [warm]."""
+    agent = [t["message"] for t in conversation.get("transcript") or [] if t.get("role") == "agent" and t.get("message")]
+    if not agent:
+        return None
+    sentences = re.split(r"(?<=[.!?])\s+", _AUDIO_TAG.sub("", agent[-1]).strip())
+    questions = [s for s in sentences if s.endswith("?")]
+    return questions[-1] if questions else None
 
 
 def _check(item: Item, turns: list[str], threshold: float) -> Item:

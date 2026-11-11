@@ -21,6 +21,7 @@ RESUME_WORDS = 350
 MAX_POSITIONS = 5
 RECENT_HOOK_FORMATS = 3
 DEFAULT_MINUTES = 25
+WRAP_UP_MARGIN_SECS = 300   # start converging this long before the session or the call limit ends
 
 NO_POSITIONS = "None recorded for this book yet."
 NO_OPEN_QUESTION = "None. This is the first session on this unit."
@@ -286,8 +287,14 @@ def resume_opening(note: Note, unit_title: str) -> str:
     return f"Hi, I'm Agora; last time on {unit_title} we stopped before {phase}. Before we pick it up, has your thinking changed since?"
 
 
+def wrap_up_secs(minutes: int, max_seconds: int) -> int:
+    """When the agent should stop opening threads: five minutes before the session's
+    length or the platform's call limit, whichever comes first."""
+    return max(120, min(minutes * 60, max_seconds) - WRAP_UP_MARGIN_SECS)
+
+
 def build(learner_repo: Path, source: str, unit_id: str | None = None, minutes: int | None = None,
-          fresh: bool = False) -> Session:
+          fresh: bool = False, max_seconds: int = 2400) -> Session:
     """Variables for a session. If the unit's last session ended early (or, with no unit
     given, any unit's), continue it rather than start over, unless `fresh`."""
     learner_repo = Path(learner_repo)
@@ -321,6 +328,7 @@ def build(learner_repo: Path, source: str, unit_id: str | None = None, minutes: 
         "recent_positions": recent_positions(learner_repo, source),
         "open_question": question or NO_OPEN_QUESTION,
         "session_minutes": minutes or DEFAULT_MINUTES,
+        "wrap_up_secs": wrap_up_secs(minutes or DEFAULT_MINUTES, max_seconds),
         "opening_line": (resume_opening(note, _clean(unit.get("title"))) if note
                          else opening_line(question, _clean(unit.get("title")), name)),
         "resume_brief": resume_brief(note, learner_repo, source) if note else NO_RESUME,

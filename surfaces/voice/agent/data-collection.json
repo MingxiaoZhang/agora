@@ -56,5 +56,9 @@
   "research_questions": {
     "type": "string",
     "description": "Fact or consensus questions the agent said it would check after the session, separated by ' | '. Empty if none."
+  },
+  "progress_summary": {
+    "type": "string",
+    "description": "Only if the session ended before the learner's synthesis was critiqued: where the discussion had got to, in one or two sentences, naming the learner's latest position and the thread still open. Empty if the session finished."
   }
 }

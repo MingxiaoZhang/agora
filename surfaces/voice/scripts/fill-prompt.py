@@ -38,7 +38,7 @@ def main() -> int:
         elif EDIT_MARK in str(v):
             problems.append(f"{k}: still says {EDIT_MARK!r}; fill it in")
 
-    used = set(VAR.findall(template))
+    used = {v for v in VAR.findall(template) if not v.startswith("system__")}  # filled by ElevenLabs
     missing = sorted(used - values.keys() - {"opening_line"})
     if missing:
         problems.append("missing variables: " + ", ".join(missing))
@@ -52,7 +52,7 @@ def main() -> int:
         print("Cannot fill prompt:", *("  - " + p for p in problems), sep="\n", file=sys.stderr)
         return 1
 
-    filled = VAR.sub(lambda m: str(values[m.group(1)]), template)
+    filled = VAR.sub(lambda m: str(values.get(m.group(1), m.group(0))), template)
     first = str(values["opening_line"])
 
     args.out.mkdir(parents=True, exist_ok=True)

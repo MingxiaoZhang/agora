@@ -365,6 +365,15 @@ def session_note(r: Reconciled, date: str, updated: list[str], open_question: st
     else:
         out.append("_Not written._")
 
+    stopped = r.stopped_at()
+    if stopped:
+        out += ["", "## Where it stopped", f"- Stopped at: {stopped}"]
+        if r.left_on:
+            out.append(f"- Left on: \"{r.left_on}\"")
+        if r.data.get("progress_summary"):
+            out.append(f"- Where the discussion had got to: {r.data['progress_summary']}"
+                       " <!-- REVIEW: extracted after the call; check it against what you said. -->")
+
     out += ["", "## Records updated"]
     out += [f"- {u}" for u in updated]
     out.append(f"- open question carried out: {open_question or ''}")

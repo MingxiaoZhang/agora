@@ -129,7 +129,7 @@ def start_web(learner_repo: Path, source: str, unit: str | None, minutes: int | 
     cfg = config_mod.load(learner_repo)
     if not cfg.web_agent_id:
         raise RuntimeError("No web agent yet. Run `agora-voice setup` first.")
-    session = context.build(learner_repo, source, unit, minutes, fresh)
+    session = context.build(learner_repo, source, unit, minutes, fresh, cfg.max_duration_seconds)
     return new_log(learner_repo, session, "web"), talk_url(cfg.web_agent_id, session.variables)
 
 
@@ -144,7 +144,7 @@ def run_text(learner_repo: Path, source: str, unit: str | None, minutes: int | N
     cfg = config_mod.load(learner_repo)
     if not cfg.agent_id:
         raise RuntimeError("No agent yet. Run `agora-voice setup` first.")
-    session = context.build(learner_repo, source, unit, minutes, fresh)
+    session = context.build(learner_repo, source, unit, minutes, fresh, cfg.max_duration_seconds)
     log = new_log(learner_repo, session, "text")
     term = terminal or Terminal()
     handlers = Handlers(log, term.read_synthesis)

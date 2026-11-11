@@ -248,6 +248,14 @@ The terminal shows a live transcript (both sides), so the learner can see what t
 
 **Records from a web session** (§10): the hook comes from the session log (it was prepared and passed in); the commitment, positions and research questions come from data collection; the synthesis is the learner's typed reply to the agent's request, taken verbatim from the transcript, whose turns carry `source_medium: text` or `audio`. A live run against the web agent showed extraction is usable but imperfect: it filed the typed synthesis as a position and as the agent's conclusion, until the field descriptions said not to. Everything lands as drafts for review, as always.
 
+## 9b. Incomplete sessions
+
+Calls end early: the learner runs out of time, the platform's call limit hits, the connection drops. Three layers handle it.
+
+1. **Notice.** Session notes carry `status: complete | incomplete` and `stopped_at` (formats/session-note.md). `Reconciled.stopped_at()` works it out from what was recorded: a commitment means the spark happened, a position the discussion, a converge step converge, and a synthesis typed in the session that it was critiqued. A synthesis typed after the call doesn't count, since it wasn't critiqued.
+2. **Resume.** If a unit's latest session is incomplete, `talk` continues it (`--fresh` starts over; with no `--unit`, the interrupted unit is chosen). No unused hook is needed. The agent gets `resume_brief`, built from the session note and the positions it touched: where it stopped, the hook (not to be repeated), the commitment, debrief, positions as they ended, converge so far, any synthesis written afterwards, and "Where it stopped". The first message asks whether the learner's thinking has changed; the brief asks the agent to open with a one-sentence recap. The continued note records `continues:` and counts the carried-over phases as done. This follows the method's Resume step, so every surface does the same.
+3. **Conclude with what there is.** In the call, the prompt shows `{{system__call_duration_secs}}` (verified to update live) and `{{wrap_up_secs}}`: five minutes before the session's length or the call limit. Past it, the agent opens no new threads, converges, and goes to the synthesis. After an incomplete call, the note's "Where it stopped" section quotes the agent's last question verbatim from the transcript, and adds `progress_summary` from data collection, marked for review. If the synthesis is missing, `talk` and `ingest` ask for it in the terminal.
+
 ## 10. Ingest and reconcile (`ingest.py`, `reconcile.py`, `render.py`)
 
 **Fetch:** `GET /v1/convai/conversations/{id}`. Poll every 5 s while `status` is `processing`, giving up after 2 minutes. Use `transcript`, `analysis` (data collection results), and `metadata` (duration, cost).

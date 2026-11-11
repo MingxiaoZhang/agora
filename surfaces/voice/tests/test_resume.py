@@ -90,3 +90,53 @@ def test_a_continued_session_renders_and_completes(learner_repo):
     assert signals[-1]["hook_skipped"] is False and signals[-1]["synthesis_written"] is True
     # Once continued and complete, the unit no longer resumes.
     assert context.interrupted(learner_repo, SOURCE) is None
+
+
+def test_wrap_up_time():
+    assert context.wrap_up_secs(25, 2400) == 1200       # five minutes before the session's length
+    assert context.wrap_up_secs(60, 2400) == 2100       # or before the call limit, if that's sooner
+    assert context.wrap_up_secs(3, 2400) == 120         # never right away
+
+
+def test_last_question_is_verbatim_without_audio_tags():
+    from agora_voice.reconcile import last_question
+    conv = {"transcript": [
+        {"role": "agent", "message": "Earlier question?"},
+        {"role": "user", "message": "answer"},
+        {"role": "agent", "message": "[warm] Good point. Two questions stay open. What do you disagree with in that?"},
+    ]}
+    assert last_question(conv) == "What do you disagree with in that?"
+    assert last_question({"transcript": [{"role": "agent", "message": "Take care."}]}) is None
+
+
+def test_where_it_stopped_feeds_the_next_session(learner_repo):
+    log = EventLog.new(learner_repo, source=SOURCE, unit="transformation", session_minutes=25, date="2026-11-10",
+                       hook_headline="A team made contract review 40% faster. Success or failure? You have ninety seconds.")
+    log.append("record_commitment", kind="choice", summary="success", learner_quote="success")
+    conv = {"transcript": [{"role": "user", "message": "success"},
+                           {"role": "agent", "message": "[curious] So what number would you point to?"}],
+            "analysis": {"data_collection_results": {"progress_summary": {"value": "Revenue as the test; risk unresolved."}}}}
+    note = render(learner_repo, reconcile(log, conv), "2026-11-10").session_note.read_text(encoding="utf-8")
+    assert "## Where it stopped\n- Stopped at: debrief" in note
+    assert '- Left on: "So what number would you point to?"' in note
+    assert "Revenue as the test; risk unresolved. <!-- REVIEW:" in note
+
+    brief = context.build(learner_repo, SOURCE).variables["resume_brief"]
+    assert "the debrief step never happened" in brief
+    assert 'Left on: "So what number would you point to?"' in brief and "REVIEW" not in brief
+
+
+def test_smoke_prompt_still_fills(tmp_path):
+    import subprocess, sys
+    from pathlib import Path
+    here = Path(__file__).resolve().parents[1]
+    vars_file = tmp_path / "vars.json"
+    data = json.loads((here / "smoke" / "transformation.vars.json").read_text(encoding="utf-8"))
+    data["learner_context"] = "A backend engineer."
+    vars_file.write_text(json.dumps(data), encoding="utf-8")
+    run = subprocess.run([sys.executable, str(here / "scripts" / "fill-prompt.py"),
+                          str(here / "generated" / "agent-prompt.smoke.md"), str(vars_file), "--out", str(tmp_path)],
+                         capture_output=True, text=True)
+    assert run.returncode == 0, run.stderr
+    filled = (tmp_path / "system-prompt.md").read_text(encoding="utf-8")
+    assert "{{system__call_duration_secs}}" in filled and "{{wrap_up_secs}}" not in filled
