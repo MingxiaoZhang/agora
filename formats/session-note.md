@@ -11,6 +11,8 @@ source: <slug>
 unit: <id>
 length: 10 | 25 | open
 surface: string            # e.g. claude-skill, chatgpt, voice
+status: complete | incomplete
+stopped_at: spark | debrief | discuss | converge | synthesize   # only when incomplete
 ---
 
 ## Hook
@@ -45,3 +47,5 @@ The learner's own two or three sentences, verbatim.
 ```
 
 Sections may be empty when a phase was skipped. The `Synthesis` section is the learner's text only.
+
+A session is `complete` once the learner's synthesis was written and critiqued. Otherwise it is `incomplete`, and `stopped_at` names the first phase that didn't happen: no commitment to the hook (`spark`), no assumption surfaced (`debrief`), no position taken (`discuss`), no core idea stated (`converge`), or no critiqued synthesis (`synthesize`). A synthesis written after the session ended counts as `synthesize`, since it wasn't critiqued. Read is optional and never blocks completion. The next session on that unit continues an incomplete one (see `../method/session.md`, Resume).
