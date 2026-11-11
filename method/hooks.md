@@ -51,11 +51,40 @@ If any check fails, redesign. A generic hook is worse than a plain "What do you 
 | Structural analogy | resolves a case from an unrelated domain with the same shape |
 | Personal memory | recalls a time the idea showed up in their own life |
 | Agree/disagree | takes a stance on one bold statement, to revisit later |
+| Scene | steps into a short role-play at a decision point, with characters played by the partner, and decides |
+
+## Scenes
+
+A scene is a few minutes of lived decision: the learner is someone facing the choice the source is about, and the partner plays the people around them. It's the strongest hook when a judgment target is about what to *do*. Its rules, on top of the quality bar:
+
+1. **Grounded.** Every role is prepared ahead: who they are, what they want, what they know. The partner improvises within that and invents no facts that matter to the decision.
+2. **A real decision.** Two or more defensible options with real costs. The scene builds to one moment where the learner commits.
+3. **Consequences can go wrong.** After the decision, play out what follows in a few turns, honestly. A choice that would backfire does backfire. A scene where every choice succeeds teaches nothing.
+4. **Short.** A few minutes at most. The scene serves the discussion, not the other way round.
+5. **Divergence is the lesson.** If the learner's choice differs from the source's case or recommendation, the debrief names the difference and asks why.
+6. **Positions, not real people.** Roles are composites ("a skeptical CFO", "someone who holds the author's view"), never real, named people. Putting invented words in a real person's mouth misleads.
+7. **Fiction stays marked as fiction.** Nothing invented in the scene is later presented as the source's content, and the scene ends by pointing to the passage where the real argument is.
+
+## Hooks for nonfiction
+
+Build every hook around a **judgment target**: a question the learner should reach themselves, which looking things up wouldn't settle. A hook built around a fact is a quiz.
+
+The kind of claim at the center of the target suggests the format:
+
+| The target is about... | Formats that fit | The learner feels... |
+|---|---|---|
+| A cause ("X leads to Y") | Predict-and-commit, structural analogy | whether their own model of the world predicts it |
+| A test or framework | Find the flaw, personal memory, scene | where it works and where it breaks on a real case |
+| A recommendation ("you should…") | Forced dilemma, scene, pre-mortem | the cost of following it |
+| A prediction | Predict-and-commit with a deadline, pre-mortem | how confident they actually are |
+| A historical turning point | Scene, set before the outcome is known | the decision as it looked at the time, without hindsight |
+| A distinction or definition | Rank-and-defend, agree/disagree on edge cases | where the line really falls |
+| The author's credibility | Find the flaw | which parts survive the bias |
 
 ## Making a hook
 
-1. From the agenda (see `discussion.md`), pick one tension and its general idea.
-2. Draft three candidate hooks in different formats.
+1. From the agenda (see `discussion.md`), pick one tension and its general idea. For nonfiction, pick the judgment target it points to.
+2. Draft three candidate hooks in different formats, using the table above to choose them.
 3. Check each against the quality bar. Keep the best that passes.
 4. Record the hook used and the ones rejected, with the reason (see `../formats/session-note.md`).
 

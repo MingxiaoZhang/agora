@@ -287,6 +287,31 @@ def resume_opening(note: Note, unit_title: str) -> str:
     return f"Hi, I'm Agora; last time on {unit_title} we stopped before {phase}. Before we pick it up, has your thinking changed since?"
 
 
+def scene_parts(hook: dict) -> tuple[str, str]:
+    """A scene hook's activity and debrief angle, with the scene folded in (method/hooks.md,
+    "Scenes"). Roles and the decision go in the activity, which the agent runs; how each
+    option plays out and what the source says go in the private debrief angle."""
+    activity, angle = _clean(hook.get("activity")), _clean(hook.get("debrief_angle"))
+    scene = hook.get("scene") or {}
+    if not scene:
+        return activity, angle
+    roles = " ".join(
+        f"As {_clean(r.get('name'))}: {_sentence(r.get('position'))} Wants: {_sentence(r.get('wants'))} "
+        f"Knows: {_sentence(r.get('knows'))}".strip()
+        for r in scene.get("roles") or [])
+    run = [f"Scene, for you to run: {_sentence(scene.get('setting'))}" if scene.get("setting") else "",
+           f"You play these roles. {roles}" if roles else "",
+           f"The decision: {_sentence(scene.get('decision'))}" if scene.get("decision") else "",
+           "Let each role speak briefly, then ask for the decision. After it, play out what follows "
+           "in two or three turns, honestly, then debrief."]
+    private = [f"After the decision, how each option plays out (private): {_sentence(scene.get('consequences'))}"
+               if scene.get("consequences") else "",
+               f"For the debrief, what the source says (private): {_sentence(scene.get('source_contrast'))}"
+               if scene.get("source_contrast") else ""]
+    return (" ".join(p for p in [activity, *run] if p),
+            " ".join(p for p in [angle, *private] if p))
+
+
 def wrap_up_secs(minutes: int, max_seconds: int) -> int:
     """When the agent should stop opening threads: five minutes before the session's
     length or the platform's call limit, whichever comes first."""
@@ -312,6 +337,7 @@ def build(learner_repo: Path, source: str, unit_id: str | None = None, minutes: 
                 "activity": HOOK_ALREADY_DONE, "debrief_angle": prepared.get("debrief_angle", "")}
     else:
         hook = select_hook(unit, recent_hook_formats(learner_repo))
+    activity, debrief_angle = scene_parts(hook)
 
     variables = {
         "source_spoken_name": name,
@@ -322,8 +348,8 @@ def build(learner_repo: Path, source: str, unit_id: str | None = None, minutes: 
         "unit_brief": unit_brief(unit, _clean(src.get("notes"))),
         "hook_format": _clean(hook.get("format")),
         "hook_headline": _clean(hook.get("headline")),
-        "hook_activity": _clean(hook.get("activity")),
-        "hook_debrief_angle": _clean(hook.get("debrief_angle")),
+        "hook_activity": activity,
+        "hook_debrief_angle": debrief_angle,
         "learner_context": learner_context(learner_repo),
         "recent_positions": recent_positions(learner_repo, source),
         "open_question": question or NO_OPEN_QUESTION,

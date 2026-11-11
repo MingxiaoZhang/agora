@@ -1,0 +1,127 @@
+# Example spine for On Liberty by John Stuart Mill (1859). Public domain.
+# Hand-prepared from the full text, following prepare/hooks/PROCEDURE.md.
+# Claims are paraphrased; locations refer to chapter 2.
+
+source:
+  title: "On Liberty"
+  author: "John Stuart Mill"
+  spoken_name: "Mill's On Liberty"
+  kind: book
+  published: 1859
+  language: en
+  author_context: >
+    A utilitarian philosopher writing in Victorian England, against the pressure of public
+    opinion as much as of law. Mill credited Harriet Taylor Mill as a co-author in spirit.
+    He worked for decades for the East India Company, and the book exempts societies it calls
+    "backward" from its principle, a limit critics have long pointed out.
+  notes: "Prepared from the full public-domain text."
+
+order: source
+
+units:
+  - id: ch02
+    title: "Of the liberty of thought and discussion"
+    location: "Chapter 2"
+    status: not-started
+    claims:
+      - text: >
+          Silencing an opinion assumes you can't be wrong. The silenced opinion may be true, and
+          the freedom to contradict a belief is the very thing that entitles us to act on it as true.
+        contestable_because: >
+          Societies act on fallible judgments all the time (laws, medicine). Why should speech be
+          different, especially when an opinion causes harm before it can be refuted?
+      - text: >
+          Even a false opinion usually holds part of the truth, because the prevailing view is
+          rarely the whole truth. Only the collision of opposing views supplies the rest.
+        contestable_because: >
+          Some claims are simply false, and treating every view as a partial truth can give fringe
+          claims unearned weight.
+      - text: >
+          Even a wholly true belief, if never challenged, is held as prejudice rather than
+          understanding, and its meaning fades into a formula people repeat without feeling.
+        contestable_because: >
+          People hold many true beliefs they couldn't defend, and seem fine. It's unclear how much
+          understanding the average person needs, or whether challenge is the only way to get it.
+      - text: >
+          The idea that truth always beats persecution is a comfortable falsehood: history shows
+          true ideas suppressed for centuries, and some movements crushed outright.
+        contestable_because: "Hard to show a true idea was permanently lost, since we'd no longer know it."
+    general_ideas:
+      - "When, if ever, is it right to suppress a claim you're confident is false and harmful?"
+      - "Can you really understand a belief you've never had to defend?"
+      - "Does truth win out on its own, or does it need protection?"
+    checkable:
+      - claim: "Several movements resembling the Reformation were suppressed before it succeeded, as Mill lists."
+        consensus: unknown
+        checked: null
+        sources: []
+    weaknesses:
+      - "Mill's own harm principle (chapter 3, the corn dealer example) allows limits on speech that incites; chapter 2 alone overstates his position."
+      - "The argument assumes a public sphere where views actually collide, not one where they're sorted into separate audiences."
+      - "The principle is limited to 'civilized' societies in chapter 1, a colonial exception."
+    hooks:
+      - format: scene
+        target: "When, if ever, is it right to suppress a claim you're confident is false and harmful?"
+        headline: "A post says a common food additive causes cancer. Experts say it's false. It's going viral. Remove it?"
+        activity: >
+          You lead content policy at a mid-sized social platform. A viral post claims a widely
+          used food additive, call it Additive X, causes cancer. You'll hear from a scientist,
+          your legal counsel and a moderator who read the study behind it, then decide: remove
+          it, label it, reduce its reach, or leave it up.
+        debrief_angle: >
+          What did the learner assume about their own certainty, and about what happens to a
+          claim when it's removed? If they removed it, push on fallibility and on the partial
+          truth the moderator found. If they left it, push on harm before refutation.
+        scene:
+          setting: >
+            A fictional mid-sized social platform. The learner leads content policy. A post
+            claiming a common food additive (Additive X, fictional) causes cancer has been shared
+            widely in a day. The decision is due before the evening peak.
+          roles:
+            - name: the scientist
+              position: Remove it.
+              wants: To stop people being frightened away from safe food, or towards worse products.
+              knows: >
+                Regulators judge Additive X safe at normal doses. The post misstates the one study
+                it cites.
+            - name: legal counsel
+              position: Label it, don't remove it.
+              wants: To avoid the platform becoming the story.
+              knows: Removed posts often spread further as screenshots, framed as proof of a cover-up.
+            - name: a moderator
+              position: Unsure.
+              wants: A rule they can apply consistently tomorrow.
+              knows: >
+                The cited study exists and found an effect at very high doses in animals. The post
+                exaggerates it, but it isn't invented.
+          decision: "Remove the post, label it with context, reduce its reach, or leave it up."
+          consequences: >
+            Remove: it resurfaces as screenshots with "they deleted this", and the moderator asks
+            what the rule is for the next one. Label: some trust gained; the claim still spreads,
+            more slowly. Reduce reach: quiet, but hard to defend if questioned publicly. Leave up:
+            it keeps spreading, and the scientist warns of real harm.
+          source_contrast: >
+            Mill argues against suppression even of opinions believed false: we may be wrong, false
+            views often hold part of the truth, and unchallenged truths go dead. But his harm
+            principle in chapter 3 allows limits when speech incites direct harm. The scene's high-dose
+            study is the kind of partial truth his second argument is about.
+      - format: predict-and-commit
+        target: "Can you really understand a belief you've never had to defend?"
+        headline: "How well can you argue against something you're sure of? Predict your score, then try."
+        activity: >
+          Pick one belief you're confident in, about work, ethics, or politics. Before trying,
+          predict out of ten how convincingly you can argue against it, in a way its opponents
+          would accept. Then make that argument out loud, and score yourself again.
+        debrief_angle: >
+          Compare the prediction with the result. If the learner struggled, do they hold the belief
+          as understanding or as a formula? Does that matter if the belief is true? Don't name
+          Mill's "dead dogma" until the learner has described the gap themselves.
+      - format: predict-and-commit
+        target: "Does truth win out on its own, or does it need protection?"
+        headline: "'The truth always comes out.' Would you bet on it?"
+        activity: >
+          Bet yes or no: can persecution permanently stop a true idea from spreading? Then give
+          one example that supports your bet, or explain why no example could exist.
+        debrief_angle: >
+          Surface what the learner means by "wins": eventually, everywhere, or in time to matter?
+          Push on the survivorship problem: how would we know about ideas that were stopped?

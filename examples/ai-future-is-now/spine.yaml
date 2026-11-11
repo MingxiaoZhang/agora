@@ -64,9 +64,90 @@ units:
     title: "Enterprise decision core and the 'boss AI'"
     location: "Chapters 6–7"
     status: not-started
+    claims:
+      - text: >
+          Information degrades as it moves up management layers: each layer summarizes away
+          harsh signals and softens bad news. Leaders should read the raw records that already
+          exist (meeting recordings, edit histories, code commits, support tickets) rather than
+          dashboards, which show results after the damage is done.
+        contestable_because: >
+          Reading employees' work traces raises trust and privacy problems, and signals tend to
+          get gamed once people know they're watched. The book states limits only as principles.
+      - text: >
+          Enterprise AI answers wrongly less because information is missing than because the
+          answer sits in relationships between facts. The fix is an explicit map of entities,
+          relationships and rules that people who know the business can read and edit.
+        contestable_because: >
+          Who resolves conflicting definitions, versions changes, and catches wrong rules is
+          left unanswered, and the engineering cost is not quantified.
     general_ideas:
       - "How should you weigh advice from someone who sells the solution they recommend?"
       - "What makes an organization's knowledge usable by AI: the documents, or the relationships between them?"
+      - "Should leaders get the truth by reading people's raw work records, and what would make that legitimate?"
+    weaknesses:
+      - "The author's company sells the decision-core and 'boss AI' systems these chapters describe."
+      - "Evidence comes mostly from large, digitally mature firms."
+      - "Almost no cases where such systems caused harm (leaks, wrongful personnel decisions)."
+    hooks:
+      - format: scene
+        target: "Should leaders get the truth by reading people's raw work records, and what would make that legitimate?"
+        headline: "Your AI caught a failing launch three weeks early. It did it by reading everyone's meetings. Roll it out?"
+        activity: >
+          You're the CEO of a 300-person software company deciding whether to roll out an AI
+          that reads meeting transcripts, edit histories, commits and tickets to flag trouble
+          early. You'll hear from your IT lead, your head of people and an engineering manager,
+          then decide: roll it out as is, roll it out with limits you name, or stop the pilot.
+        debrief_angle: >
+          What did the learner trade off, signal against trust? If they set limits, did those
+          answer who audits it, how employees appeal, and how misuse is caught? Push on whether a
+          signal survives once people know they're watched.
+        scene:
+          setting: >
+            A fictional 300-person software company. The learner is the CEO. A pilot of an AI that
+            reads raw work records caught a slipping product launch three weeks before the numbers
+            showed it. The rollout decision is due today.
+          roles:
+            - name: the IT lead
+              position: Roll it out company-wide, as is.
+              wants: Early warning before problems reach the numbers.
+              knows: >
+                The pilot flagged the launch from stalled commits and reopened tickets. It reads
+                meeting transcripts, document edit histories, commits and support tickets.
+            - name: the head of people
+              position: Stop reading meeting transcripts.
+              wants: Trust, and keeping senior engineers.
+              knows: >
+                Two senior engineers have asked whether their meetings feed performance reviews.
+                There is no audit or appeal process yet.
+            - name: an engineering manager
+              position: Somewhere in between.
+              wants: Fewer surprise escalations, and a team that still talks openly.
+              knows: Since the pilot started, some teams have moved hard conversations to private calls.
+          decision: >
+            Roll it out as is, roll it out with specific limits (what it reads, who sees it, how
+            employees appeal, how misuse is caught), or stop the pilot.
+          consequences: >
+            As is: useful warnings at first, then the signals weaken as people route around the
+            system, and a senior engineer resigns. Specific, auditable limits: a slower rollout and
+            a weaker signal, but trust mostly holds. Vague limits play out like "as is". Stopping:
+            trust holds, and the next slipping project surfaces late.
+          source_contrast: >
+            The book recommends leaders read raw work records rather than dashboards, with limits
+            stated as principles. The public distillation notes it doesn't say who audits the
+            system, how employees appeal, or how misuse is detected, and that signals get gamed
+            once used for evaluation. The author's company sells such systems.
+      - format: personal memory
+        target: "When an AI gets your organization wrong, is the missing piece information or the connections between facts?"
+        headline: "Think of the last time an AI confidently got your work wrong. Was the answer missing, or scattered?"
+        activity: >
+          Recall one specific time an AI tool gave a confident but wrong answer about your own
+          work or organization. Decide: was the right answer missing from everything it could
+          read, or was it there but spread across several facts no single document connected?
+          Commit to one, and name the facts if you can.
+        debrief_angle: >
+          Surface the learner's own model of why the AI failed. If "scattered": who holds the
+          connections, and could they maintain a map of them? If "missing": what does that say
+          about the claim that relationships, not information, are the bottleneck?
 
   - id: transformation
     title: "Why AI transformations fail"

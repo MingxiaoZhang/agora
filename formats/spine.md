@@ -38,9 +38,20 @@ units:
       - string
     hooks:                    # optional: hooks prepared ahead of time
       - format: string        # from method/hooks.md
+        target: string        # optional: the judgment question the hook is built around
         headline: string
         activity: string      # ends with what the learner commits to
         debrief_angle: string # what the debrief should surface (private)
+        scene:                # only for format: scene
+          setting: string     # where and when; who the learner is
+          roles:              # played by the partner; composites, never real people
+            - name: string    # e.g. "the CFO"
+              position: string
+              wants: string
+              knows: string
+          decision: string    # the one moment the learner commits
+          consequences: string  # how each option tends to play out (private)
+          source_contrast: string  # what the source's case or argument says, for the debrief (private)
         used: YYYY-MM-DD      # set when a session uses it; omit if unused
 ```
 
