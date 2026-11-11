@@ -8,7 +8,9 @@ row changes nothing.
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
+import re
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
@@ -60,16 +62,25 @@ class Api:
         return self.request("PATCH", path, body)
 
 
+_STAMP = re.compile(r"\((\w+), inputs ([0-9a-f]{16})\)")
+
+
+def inputs_hash(variant: str) -> str:
+    """The same hash build-surfaces.sh stamps into the prompt (its voice_inputs order)."""
+    files = [REPO_ROOT / "method" / "session.md", REPO_ROOT / "method" / "discussion.md",
+             AGENT_DIR / "voice-header.md", AGENT_DIR / f"voice-{variant}.md", AGENT_DIR / "session-context.md"]
+    return hashlib.sha256(b"".join(f.read_bytes() for f in files)).hexdigest()[:16]
+
+
 def check_prompt_fresh(*prompts: Path) -> None:
-    """Refuse a generated prompt older than anything it's built from."""
+    """Refuse a generated prompt whose inputs have changed since it was built.
+    Compares content, not file times, which git doesn't preserve."""
     for prompt in prompts or (PROMPT, WEB_PROMPT):
         if not prompt.exists():
             raise ProvisionError(f"{prompt} is missing. Run scripts/build-surfaces.sh.")
-        sources = list((REPO_ROOT / "method").glob("*.md")) + list(AGENT_DIR.glob("*.md"))
-        newer = [s for s in sources if s.stat().st_mtime > prompt.stat().st_mtime]
-        if newer:
-            names = ", ".join(str(s.relative_to(REPO_ROOT)) for s in newer)
-            raise ProvisionError(f"{prompt.name} is older than {names}. Run scripts/build-surfaces.sh.")
+        stamp = _STAMP.search(prompt.read_text(encoding="utf-8").split("\n", 1)[0])
+        if not stamp or stamp.group(2) != inputs_hash(stamp.group(1)):
+            raise ProvisionError(f"{prompt.name} is out of date. Run scripts/build-surfaces.sh.")
 
 
 def contains(actual: Any, desired: Any) -> bool:

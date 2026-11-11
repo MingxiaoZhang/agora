@@ -1,7 +1,7 @@
 import copy
 import itertools
 import json
-import os
+import re
 
 import pytest
 
@@ -102,11 +102,14 @@ def test_recreates_a_tool_deleted_on_elevenlabs(cfg):
     assert "updated agent" in second.changes  # new tool id attached
 
 
-def test_refuses_stale_prompt(tmp_path, monkeypatch):
+def test_refuses_stale_prompt(tmp_path):
     prompt = tmp_path / "agent-prompt.md"
-    prompt.write_text("old", encoding="utf-8")
-    os.utime(prompt, (0, 0))
-    with pytest.raises(provision.ProvisionError, match="build-surfaces.sh"):
+    first = provision.PROMPT.read_text(encoding="utf-8").split("\n", 1)[0]
+    prompt.write_text(first + "\n", encoding="utf-8")
+    provision.check_prompt_fresh(prompt)  # inputs unchanged: fine, whatever the file times
+    stale = re.sub(r"inputs [0-9a-f]{16}", "inputs " + "0" * 16, first)  # built from other inputs
+    prompt.write_text(stale + "\n", encoding="utf-8")
+    with pytest.raises(provision.ProvisionError, match="out of date"):
         provision.check_prompt_fresh(prompt)
     with pytest.raises(provision.ProvisionError, match="missing"):
         provision.check_prompt_fresh(tmp_path / "none.md")
